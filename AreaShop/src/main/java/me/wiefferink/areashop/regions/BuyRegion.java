@@ -24,6 +24,7 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Calendar;
 import java.util.UUID;
 
@@ -38,9 +39,10 @@ public class BuyRegion extends GeneralRegion {
 			@Nonnull WorldEditInterface worldEditInterface,
 			@Nonnull WorldGuardInterface worldGuardInterface,
 			@Nullable Economy economy,
-			@Assisted @Nonnull YamlConfiguration config
+			@Assisted @Nonnull YamlConfiguration config,
+			@Assisted @Nonnull File file
 	) {
-		super(plugin, featureManager, worldEditInterface, worldGuardInterface, config);
+		super(plugin, featureManager, worldEditInterface, worldGuardInterface, config, file);
 		this.economy = economy;
 	}
 

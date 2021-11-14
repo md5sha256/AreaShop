@@ -178,6 +178,8 @@ public class RegionSign {
 			Material signType = getMaterial();
 			if (!blockHelper.canPlace(block.getLocation(), Bukkit.createBlockData(signType))) {
 				AreaShop.warn("Setting sign", key, "of region", getRegion().getName(), "failed, could not set sign block back");
+				this.remove();
+				return false;
 			}
 			// Don't do physics here, we first need to update the direction
 			block.setType(signType, false);

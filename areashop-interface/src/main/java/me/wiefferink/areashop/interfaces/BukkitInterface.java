@@ -4,7 +4,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
 public abstract class BukkitInterface {
-	protected final AreaShopInterface pluginInterface;
+	private final AreaShopInterface pluginInterface;
 
 	public BukkitInterface(AreaShopInterface pluginInterface) {
 		this.pluginInterface = pluginInterface;
