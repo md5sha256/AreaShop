@@ -53,17 +53,12 @@ public abstract class GeneralRegion implements GeneralRegionInterface, Comparabl
 	protected final WorldEditInterface worldEditInterface;
 	protected final WorldGuardInterface worldGuardInterface;
 
-	protected final YamlConfiguration config;
-	protected final File file;
+	protected final YamlConfiguration config;;
 	private boolean saveRequired = false;
 	private boolean deleted = false;
 	private long volume = -1;
 
 	private Map<Class<? extends RegionFeature>, RegionFeature> features;
-
-	public File getFile() {
-		return this.file;
-	}
 
 	// Enum for region types
 	public enum RegionType {
@@ -167,15 +162,13 @@ public abstract class GeneralRegion implements GeneralRegionInterface, Comparabl
 			@Nonnull FeatureManager featureManager,
 			@Nonnull WorldEditInterface worldEditInterface,
 			@Nonnull WorldGuardInterface worldGuardInterface,
-			@Nonnull YamlConfiguration config,
-			@Nonnull File file
+			@Nonnull YamlConfiguration config
 	) {
 		this.plugin = plugin;
 		this.featureManager = featureManager;
 		this.worldEditInterface = worldEditInterface;
 		this.worldGuardInterface = worldGuardInterface;
 		this.config = config;
-		this.file = file;
 		setup();
 	}
 
@@ -191,7 +184,6 @@ public abstract class GeneralRegion implements GeneralRegionInterface, Comparabl
 							@Nonnull String name,
 							@Nonnull World world) {
 		this.config = new YamlConfiguration();
-		this.file = null;
 		this.plugin = plugin;
 		this.featureManager = featureManager;
 		this.worldGuardInterface = worldGuardInterface;

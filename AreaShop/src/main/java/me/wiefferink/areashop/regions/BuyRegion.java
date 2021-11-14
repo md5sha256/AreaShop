@@ -39,10 +39,9 @@ public class BuyRegion extends GeneralRegion {
 			@Nonnull WorldEditInterface worldEditInterface,
 			@Nonnull WorldGuardInterface worldGuardInterface,
 			@Nullable Economy economy,
-			@Assisted @Nonnull YamlConfiguration config,
-			@Assisted @Nonnull File file
+			@Assisted @Nonnull YamlConfiguration config
 	) {
-		super(plugin, featureManager, worldEditInterface, worldGuardInterface, config, file);
+		super(plugin, featureManager, worldEditInterface, worldGuardInterface, config);
 		this.economy = economy;
 	}
 

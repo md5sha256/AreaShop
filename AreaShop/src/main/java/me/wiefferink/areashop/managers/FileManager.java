@@ -928,7 +928,7 @@ public class FileManager extends Manager {
 		List<String> noRegionType = new ArrayList<>();
 		List<String> noNamePaths = new ArrayList<>();
 		List<GeneralRegion> noWorld = new ArrayList<>();
-		List<GeneralRegion> noRegion = new ArrayList<>();
+		Map<GeneralRegion, File> noRegion = new HashMap<>();
 		List<GeneralRegion> incorrectDuration = new ArrayList<>();
 		for(File regionFile : regionFiles) {
 			if(regionFile.exists() && regionFile.isFile() && !regionFile.isHidden()) {
@@ -953,9 +953,9 @@ public class FileManager extends Manager {
 				String type = regionConfig.getString("general.type");
 				GeneralRegion region;
 				if(RegionType.RENT.getValue().equals(type)) {
-					region = regionFactory.createRentRegion(regionConfig, regionFile);
+					region = regionFactory.createRentRegion(regionConfig);
 				} else if(RegionType.BUY.getValue().equals(type)) {
-					region = regionFactory.createBuyRegion(regionConfig, regionFile);
+					region = regionFactory.createBuyRegion(regionConfig);
 				} else {
 					noRegionType.add(regionFile.getPath());
 					continue;
@@ -968,7 +968,7 @@ public class FileManager extends Manager {
 				} else if(region.getWorld() == null) {
 					noWorld.add(region);
 				} else if(region.getRegion() == null) {
-					noRegion.add(region);
+					noRegion.put(region, regionFile);
 				} else if(region instanceof RentRegion && !Utils.checkTimeFormat(((RentRegion)region).getDurationString())) {
 					incorrectDuration.add(region);
 				} else {
@@ -992,9 +992,9 @@ public class FileManager extends Manager {
 
 		if(!noRegion.isEmpty()) {
 			List<String> noRegionNames = new ArrayList<>();
-			for(GeneralRegion region : noRegion) {
-				noRegionNames.add(region.getName());
-				region.getFile().delete();
+			for(Map.Entry<GeneralRegion, File> regionMap : noRegion.entrySet()) {
+				noRegionNames.add(regionMap.getKey().getName());
+				regionMap.getValue().delete();
 			}
 			AreaShop.warn("AreaShop regions that are missing their WorldGuard region are now being deleted: " + Utils.createCommaSeparatedList(noRegionNames));
 		}
