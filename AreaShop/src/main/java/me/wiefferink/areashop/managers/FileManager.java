@@ -940,7 +940,9 @@ public class FileManager extends Manager {
 				) {
 					regionConfig = YamlConfiguration.loadConfiguration(reader);
 					if(regionConfig.getKeys(false).isEmpty()) {
-						AreaShop.warn("Region file '" + regionFile.getName() + "' is empty, check for errors in the log.");
+						AreaShop.warn("Region file '" + regionFile.getName() + "' is empty, deleting the file.");
+						regionFile.delete();
+						continue;
 					}
 				} catch(IOException e) {
 					AreaShop.warn("Something went wrong reading region file: " + regionFile.getAbsolutePath());
@@ -951,9 +953,9 @@ public class FileManager extends Manager {
 				String type = regionConfig.getString("general.type");
 				GeneralRegion region;
 				if(RegionType.RENT.getValue().equals(type)) {
-					region = regionFactory.createRentRegion(regionConfig);
+					region = regionFactory.createRentRegion(regionConfig, regionFile);
 				} else if(RegionType.BUY.getValue().equals(type)) {
-					region = regionFactory.createBuyRegion(regionConfig);
+					region = regionFactory.createBuyRegion(regionConfig, regionFile);
 				} else {
 					noRegionType.add(regionFile.getPath());
 					continue;
@@ -992,9 +994,9 @@ public class FileManager extends Manager {
 			List<String> noRegionNames = new ArrayList<>();
 			for(GeneralRegion region : noRegion) {
 				noRegionNames.add(region.getName());
+				region.getFile().delete();
 			}
-			AreaShop.warn("AreaShop regions that are missing their WorldGuard region: " + Utils.createCommaSeparatedList(noRegionNames));
-			AreaShop.warn("Remove these regions from AreaShop with '/as del' or recreate their regions in WorldGuard.");
+			AreaShop.warn("AreaShop regions that are missing their WorldGuard region are now being deleted: " + Utils.createCommaSeparatedList(noRegionNames));
 		}
 
 		boolean noWorldRegions = !noWorld.isEmpty();
