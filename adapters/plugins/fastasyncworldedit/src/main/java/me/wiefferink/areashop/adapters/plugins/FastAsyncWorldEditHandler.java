@@ -25,14 +25,11 @@ import com.sk89q.worldedit.world.entity.EntityType;
 import com.sk89q.worldedit.world.entity.EntityTypes;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import me.wiefferink.areashop.interfaces.AreaShopInterface;
+import me.wiefferink.areashop.interfaces.ExceptionUtil;
 import me.wiefferink.areashop.interfaces.GeneralRegionInterface;
 import me.wiefferink.areashop.interfaces.WorldEditInterface;
 import me.wiefferink.areashop.interfaces.WorldEditSelection;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Hanging;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -113,12 +110,12 @@ public class FastAsyncWorldEditHandler extends WorldEditInterface {
                 }
             } catch (IOException ex) {
                 pluginInterface.getLogger().warning("An error occurred while restoring schematic of " + regionInterface.getName() + ", enable debug to see the complete stacktrace");
-                pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+                pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
                 future.complete(false);
                 return;
             } catch (Exception ex) {
                 pluginInterface.getLogger().warning(() -> "crashed during restore of " + regionInterface.getName());
-                pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+                pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
                 future.complete(false);
                 return;
             }
@@ -135,7 +132,7 @@ public class FastAsyncWorldEditHandler extends WorldEditInterface {
                 future.complete(true);
             } catch (WorldEditException ex) {
                 pluginInterface.getLogger().warning(() -> "An error occurred while restoring schematic of " + regionInterface.getName() + ", enable debug to see the complete stacktrace");
-                pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+                pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
                 future.complete(false);
             }
         });
@@ -179,10 +176,10 @@ public class FastAsyncWorldEditHandler extends WorldEditInterface {
                 return;
             } catch (IOException | WorldEditException ex) {
                 pluginInterface.getLogger().warning(() -> "An error occurred while saving schematic of " + regionInterface.getName() + ", enable debug to see the complete stacktrace");
-                pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+                pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
             } catch (Exception ex) {
                 pluginInterface.getLogger().warning(() -> "crashed during save of " + regionInterface.getName());
-                pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+                pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
             }
             future.complete(false);
         });
@@ -250,10 +247,10 @@ public class FastAsyncWorldEditHandler extends WorldEditInterface {
             return true;
         } catch (IOException | WorldEditException ex) {
             pluginInterface.getLogger().warning(() -> "An error occurred while restoring schematic of " + regionInterface.getName() + ", enable debug to see the complete stacktrace");
-            pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+            pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
         } catch (Exception ex) {
             pluginInterface.getLogger().warning(() -> "crashed during restore of " + regionInterface.getName());
-            pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+            pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
         }
         return false;
     }
@@ -290,10 +287,10 @@ public class FastAsyncWorldEditHandler extends WorldEditInterface {
             return true;
         } catch (IOException | WorldEditException ex) {
             pluginInterface.getLogger().warning(() -> "An error occurred while saving schematic of " + regionInterface.getName() + ", enable debug to see the complete stacktrace");
-            pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+            pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
         } catch (Exception ex) {
             pluginInterface.getLogger().warning("crashed during save of " + regionInterface.getName());
-            pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+            pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
         }
         return false;
     }
@@ -329,7 +326,7 @@ public class FastAsyncWorldEditHandler extends WorldEditInterface {
             return false;
         } catch (WorldEditException ex) {
             pluginInterface.getLogger().warning("crashed during save of " + regionInterface.getName());
-            pluginInterface.debugI(ExceptionUtils.getStackTrace(ex));
+            pluginInterface.debugI(ExceptionUtil.getStackTrace(ex));
             return true;
         }
     }

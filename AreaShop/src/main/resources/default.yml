@@ -34,6 +34,8 @@ general:
   landlordName: ''
   # Disable to prevent counting this region towards limits set by 'limitGroups' in config.yml.
   countForLimits: true
+  # Whether transferring tenant <--> tenant and landlord <--> landlord should be enabled
+  transferMode: false
 
   ##### Set the layout and functions of the signs.
   # The following sections can be added for performing certain commands when the sign is clicked:
@@ -47,7 +49,7 @@ general:
       line3: '%duration%'
       line4: '%price%'
       rightClickPlayer:
-        - 'areashop rent %region%'
+        - 'areashop rent --region %region%'
       rightClickConsole:
       #  - 'areashop message %clicker% %lang:confirm-rent|%region%|%' # Alternative to first ask for confirmation (remove rightClickPlayer section)
       leftClickPlayer:
@@ -58,7 +60,7 @@ general:
       line3: '%player%'
       line4: '%untilshort%'
       rightClickPlayer:
-        - 'areashop rent %region%'
+        - 'areashop rent --region %region%'
       rightClickConsole:
       #  - 'areashop message %clicker% %lang:confirm-extend|%region%|%' # Alternative to first ask for confirmation (remove rightClickPlayer section)
       leftClickPlayer:
@@ -71,7 +73,7 @@ general:
       line3: '%price%'
       line4:
       rightClickPlayer:
-        - 'areashop buy %region%'
+        - 'areashop buy --region %region%'
       rightClickConsole:
       #  - 'areashop message %clicker% %lang:confirm-buy|%region%|%' # Alternative to first ask for confirmation (remove rightClickPlayer section)
       leftClickPlayer:
@@ -82,7 +84,7 @@ general:
       line3: '%resellprice%'
       line4: '&8%player%'
       rightClickPlayer:
-        - 'areashop buy %region%'
+        - 'areashop buy --region %region%'
       rightClickConsole:
       #  - 'areashop message %clicker% %lang:confirm-buy|%region%|%' # Alternative to first ask for confirmation (remove rightClickPlayer section)
       leftClickPlayer:
@@ -95,7 +97,7 @@ general:
       line3: '%player%'
       line4:
       rightClickPlayer:
-        - 'areashop buy %region%'
+        - 'areashop buy --region %region%'
       leftClickPlayer:
         - 'areashop info region %region%'
       shiftRightClickConsole:
@@ -120,18 +122,18 @@ general:
       block-break: 'deny g:non_members'
       block-place: 'deny g:non_members'
     forrent:
-      greeting: '%lang:prefix%%lang:greeting-forrent%'
+      greeting: '%lang:wgPrefix%%lang:greeting-forrent%'
     rented:
       members: '%uuid%, %friendsuuid%'
-      greeting: '%lang:prefix%%lang:greeting-rented%'
+      greeting: '%lang:wgPrefix%%lang:greeting-rented%'
     forsale:
-      greeting: '%lang:prefix%%lang:greeting-forsale%'
+      greeting: '%lang:wgPrefix%%lang:greeting-forsale%'
     sold:
       members: '%uuid%, %friendsuuid%'
-      greeting: '%lang:prefix%%lang:greeting-bought%'
+      greeting: '%lang:wgPrefix%%lang:greeting-bought%'
     resell:
       members: '%uuid%, %friendsuuid%'
-      greeting: '%lang:prefix%%lang:greeting-resale%'
+      greeting: '%lang:wgPrefix%%lang:greeting-resale%'
 
   ##### Save and restore schematics to clean up regions.
   # After 'save:' or 'restore:' you enter the name of the file to restore from/to (.schematic is added automatically).

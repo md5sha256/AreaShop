@@ -7,7 +7,6 @@ import io.github.bakedlibs.dough.blocks.BlockPosition;
 import io.papermc.lib.PaperLib;
 import me.wiefferink.areashop.AreaShop;
 import me.wiefferink.areashop.managers.SignErrorLogger;
-import me.wiefferink.areashop.nms.BlockBehaviourHelper;
 import me.wiefferink.areashop.regions.GeneralRegion;
 import me.wiefferink.areashop.tools.Materials;
 import me.wiefferink.areashop.tools.SignUtils;
@@ -16,6 +15,7 @@ import me.wiefferink.interactivemessenger.processing.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Server;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -35,8 +35,8 @@ import java.util.List;
  */
 public class RegionSign {
 
-	private final BlockBehaviourHelper blockHelper;
 	private final SignErrorLogger errorLogger;
+	private final Server server;
 
 	private final SignsFeature signsFeature;
 	private final String key;
@@ -44,13 +44,13 @@ public class RegionSign {
 
 	@AssistedInject
 	RegionSign(
-			@Nonnull BlockBehaviourHelper blockBehaviourHelper,
 			@Nonnull SignErrorLogger signErrorLogger,
+			@Nonnull Server server,
 			@Assisted @Nonnull SignsFeature signsFeature,
 			@Assisted @Nonnull String key
 	) {
-		this.blockHelper = blockBehaviourHelper;
 		this.errorLogger = signErrorLogger;
+		this.server = server;
 		this.signsFeature = signsFeature;
 		this.key = key;
 	}
@@ -176,7 +176,7 @@ public class RegionSign {
 		// Place the sign back (with proper rotation and type) after it has been hidden or (indirectly) destroyed
 		if(!Materials.isSign(block.getType())) {
 			Material signType = getMaterial();
-			if (!blockHelper.canPlace(block.getLocation(), Bukkit.createBlockData(signType))) {
+			if (!block.canPlace(this.server.createBlockData(signType))) {
 				errorLogger.submitWarning("Setting sign" +  key +  "of region" + getRegion().getName() +  "failed, could not set sign block back");
 				this.remove();
 				return false;
@@ -278,7 +278,7 @@ public class RegionSign {
 		for(String command : stateConfig.getStringList(clickType.getValue() + "Console")) {
 			consoleCommands.add(command.replace(Message.VARIABLE_START + AreaShop.tagClicker + Message.VARIABLE_END, clicker.getName()));
 		}
-		getRegion().runCommands(Bukkit.getConsoleSender(), consoleCommands);
+		getRegion().runCommands(this.server.getConsoleSender(), consoleCommands);
 
 		return !playerCommands.isEmpty() || !consoleCommands.isEmpty();
 	}

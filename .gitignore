@@ -192,3 +192,5 @@ gradle-app.setting
 **/build/
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,intellij+all,gradle,maven
+
+**/run

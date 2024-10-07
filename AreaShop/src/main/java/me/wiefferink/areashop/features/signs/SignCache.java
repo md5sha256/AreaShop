@@ -3,6 +3,7 @@ package me.wiefferink.areashop.features.signs;
 import io.github.bakedlibs.dough.blocks.BlockPosition;
 import io.github.bakedlibs.dough.blocks.ChunkPosition;
 import org.bukkit.Location;
+import org.bukkit.World;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,8 +53,9 @@ public class SignCache {
     public Optional<RegionSign> removeSign(BlockPosition position) {
         RegionSign removed = this.allSigns.remove(position.getPosition());
         if (removed != null) {
-            Location location = position.toLocation();
-            this.signsByChunk.remove(new ChunkPosition(location).getPosition());
+            World world = position.getWorld();
+            ChunkPosition chunkPosition = new ChunkPosition(world, position.getChunkX(), position.getChunkZ());
+            this.signsByChunk.remove(chunkPosition.getPosition());
             // Remove the sign from the region
         }
         return Optional.ofNullable(removed);

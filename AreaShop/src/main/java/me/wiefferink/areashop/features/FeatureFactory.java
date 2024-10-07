@@ -1,5 +1,6 @@
 package me.wiefferink.areashop.features;
 
+import me.wiefferink.areashop.features.homeaccess.HomeAccessFeature;
 import me.wiefferink.areashop.features.signs.SignsFeature;
 import me.wiefferink.areashop.regions.GeneralRegion;
 
@@ -15,5 +16,8 @@ public interface FeatureFactory {
 
     @Nonnull
     FriendsFeature createFriendsFeature(@Nonnull GeneralRegion generalRegion);
+
+    @Nonnull
+    HomeAccessFeature createHomeAccessFeature(@Nonnull GeneralRegion generalRegion);
 
 }

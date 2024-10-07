@@ -1,20 +1,16 @@
 [versions]
 # Platforms
-minecraft = "1.17.1-R0.1-SNAPSHOT"
-findbugs = "3.0.2"
+minecraft = "1.21-R0.1-SNAPSHOT"
 
 # Minecraft Plugins
-worldedit = "7.2.12"
-worldguard = "7.0.7"
-fawe = "2.4.5"
-
-# Gradle plugins
-paperweight = "1.3.7"
+worldedit = "7.3.3"
+worldguard = "7.0.10"
+fawe = "2.10.0"
 
 [libraries]
 # Platform
 spigot = { group = "org.spigotmc", name = "spigot-api", version.ref = "minecraft" }
-findbugs = { group = "com.google.code.findbugs", name = "jsr305", version.ref = "findbugs" }
+paper = { group = "io.papermc.paper", name = "paper-api", version.ref = "minecraft" }
 
 # Minecraft Plugins
 worldeditBukkit = { group = "com.sk89q.worldedit", name = "worldedit-bukkit", version.ref = "worldedit" }
@@ -23,7 +19,3 @@ worldguardBukkit = { group = "com.sk89q.worldguard", name = "worldguard-bukkit",
 worldguardCore = { group = "com.sk89q.worldguard", name = "worldguard-core", version.ref = "worldguard" }
 fastasyncworldeditBukkit = { group = "com.fastasyncworldedit", name = "FastAsyncWorldEdit-Bukkit", version.ref = "fawe" }
 fastasyncworldeditCore = { group = "com.fastasyncworldedit", name = "FastAsyncWorldEdit-Core", version.ref = "fawe" }
-
-[plugins]
-# Gradle plugins
-paperweightUserdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }

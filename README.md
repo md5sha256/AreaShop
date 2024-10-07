@@ -1,4 +1,6 @@
 ![AreaShop logo](https://cloud.githubusercontent.com/assets/6951068/9471294/f016d8ee-4b4f-11e5-9bda-d61b1c423ebb.png)<br/>
+[![](https://jitpack.io/v/md5sha256/AreaShop.svg)](https://jitpack.io/#md5sha256/AreaShop)
+<br>
 **Usage and configuration:**
 [►Download (releases)](https://github.com/md5sha256/AreasShop/releases)&nbsp;&nbsp;
 [►Commands and Permissions](https://github.com/NLthijs48/AreaShop/wiki/Commands-and-Permissions)

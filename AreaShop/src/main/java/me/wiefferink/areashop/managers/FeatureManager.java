@@ -2,6 +2,8 @@ package me.wiefferink.areashop.managers;
 
 import com.google.inject.Injector;
 import com.google.inject.ProvisionException;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import me.wiefferink.areashop.AreaShop;
 import me.wiefferink.areashop.features.CommandsFeature;
 import me.wiefferink.areashop.features.DebugFeature;
@@ -10,12 +12,11 @@ import me.wiefferink.areashop.features.FriendsFeature;
 import me.wiefferink.areashop.features.RegionFeature;
 import me.wiefferink.areashop.features.TeleportFeature;
 import me.wiefferink.areashop.features.WorldGuardRegionFlagsFeature;
+import me.wiefferink.areashop.features.homeaccess.HomeAccessFeature;
 import me.wiefferink.areashop.features.signs.SignsFeature;
 import me.wiefferink.areashop.regions.GeneralRegion;
 
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ public class FeatureManager extends Manager {
 		regionFeatureConstructors.put(SignsFeature.class, wrapInstantiator(SignsFeature.class, featureFactory::createSignsFeature));
 		regionFeatureConstructors.put(TeleportFeature.class, wrapInstantiator(TeleportFeature.class, featureFactory::createTeleportFeature));
 		regionFeatureConstructors.put(FriendsFeature.class, wrapInstantiator(FriendsFeature.class, featureFactory::createFriendsFeature));
+		regionFeatureConstructors.put(HomeAccessFeature.class, wrapInstantiator(HomeAccessFeature.class, featureFactory::createHomeAccessFeature));
 	}
 
 	public void initializeFeatures(@Nonnull Injector injector) {
@@ -58,6 +60,10 @@ public class FeatureManager extends Manager {
 				AreaShop.error("Failed to instantiate global feature:", clazz, e);
 			}
 		}
+	}
+
+	public <T extends RegionFeature> void registerNonGlobalFeature(@Nonnull Class<T> clazz, @Nonnull Function<GeneralRegion, T> constructor) {
+		this.regionFeatureConstructors.put(clazz, constructor);
 	}
 
 	private <T extends RegionFeature> Function<GeneralRegion, T> wrapInstantiator(Class<T> clazz, Function<GeneralRegion, T> function

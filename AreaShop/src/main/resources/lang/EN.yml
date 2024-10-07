@@ -1,4 +1,4 @@
-﻿# ╔═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+# ╔═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 # ║ Language file of the AreaShop plugin created by NLThijs48, Github can be found at https://github.com/NLthijs48/AreaShop
 # ║ English language file, plugin version 2.5.0
 # ║
@@ -66,6 +66,7 @@ cmd-noRegion: "'%0%' is not a valid WorldGuard region."
 cmd-noRegionsAtLocation: "No regions found at your location, specify the region as argument."
 cmd-moreRegionsAtLocation: "More than one region has been found at your location, specify the region as argument."
 cmd-automaticRegionOnlyByPlayer: "Automatically determining the region is only possible for players, specify the region as argument."
+cmd-invalidPlayer: "%0% cannot be found, probably never joined the server."
 
 help-header: "Help page, commands that you can execute."
 help-noPermission: "You do not have permission to view the help page."
@@ -80,6 +81,7 @@ help-reload: "%lang:helpCommand|/as reload|% Reload all files and update the reg
 help-setrestore: "%lang:helpCommand|/as setrestore|% Set restoring on/off and choose profile."
 help-setprice: "%lang:helpCommand|/as setprice|% Change the price of a region."
 help-setduration: "%lang:helpCommand|/as setduration|% Change the duration of a rent region."
+help-settransfer: "%lang:helpCommand|/as settransfer|% Set transfer on/off."
 help-teleport: "%lang:helpCommand|/as tp|% Teleport to a rent/buy region."
 help-setteleport: "%lang:helpCommand|/as settp|% Set teleport position for a region."
 help-find: "%lang:helpCommand|/as find|% Find an empty buy or rent."
@@ -102,6 +104,11 @@ help-linksigns: "%lang:helpCommand|/as linksigns|% Use bulk sign linking mode."
 help-stack: "%lang:helpCommand|/as stack|% Create multiple regions and add them."
 help-setlandlord: "%lang:helpCommand|/as setlandlord|% Set the landlord of a region."
 help-import: "%lang:helpCommand|/as import|% Import region from RegionForSale."
+help-transfer: "%lang:helpCommand|/as transfer|% Transfer a region to another player."
+help-togglehome: "%lang:helpCommand|/as togglehome|% Toggle whether players can set homes in a region."
+help-quickbuy: "%lang:helpCommand|/as quickbuy|% Create a worldguard region and import it as a buy region."
+help-quickrent: "%lang:helpCommand|/as quickrent|% Create a worldguard region and import it as a rent region."
+help-quickdelete: "%lang:helpCommand|/as quickdelete|% Delete an AreaShop region and its associated WorldGuard region(s)."
 
 rent-help: "/as rent [region], the region you stand in will be used if not specified."
 rent-noPermission: "You don't have permission to rent a region."
@@ -155,6 +162,22 @@ sell-sold: "%lang:region% of %lang:player% has been sold."
 sell-noPermission: "You don't have permission to sell a region."
 sell-noPermissionOther: "You don't have permission to sell another region."
 sell-disabled: "Selling has been disabled for this region."
+
+transfer-help: "/as transfer <player> [region], the region you stand in will be used if not specified."
+transfer-noPermission: "You don't have permission to transfer a region."
+transfer-disabled: "Transferring has been disabled for this region."
+transfer-transferred-owner: "%lang:region% has been transferred and is now owned by %0%."
+transfer-transferred-tenant: "%lang:region% has been transferred and is now occupied by %0%."
+transfer-noPlayer: "Unknown player: %0%"
+transfer-notCurrentTenant: "You are not the current tenant of this region."
+transfer-transferSelf: "You cannot transfer a region to yourself."
+
+togglehome-noPermission: "You do not have permission to toggle sethome access."
+togglehome-noPermissionOther: "You do not have permission to toggle sethome access of others."
+togglehome-unknownAccessType: "Unknown HomeAccessType: %0%"
+togglehome-success: "Access type changed to %0%!"
+togglehome-help: "/areashop togglehome <region> <access type>"
+togglehome-sethomeDenied: "You cannot set a home in this region."
 
 reload-reloading: "Reloaded all configuration and region files."
 reload-updateStart: ""
@@ -303,6 +326,12 @@ setrestore-invalidSetting: "'%0%' is not a valid state, should be true, false or
 setrestore-success: "Successfully set the restore setting of %lang:region% to '%0%'."
 setrestore-successProfile: "Successfully set the restore setting of %lang:region% to '%0%' and the profile to '%1%'."
 
+settransfer-help: "/as settransfer <region> <true|false>."
+settransfer-noPermission: "You don't have permission to change the transfer settings."
+settransfer-notRegistered: "The specified region is not registered: %0%."
+settransfer-invalidSetting: "'%0%' is not a valid state, should be true, false or general."
+settransfer-success: "Successfully set the transfer setting of %lang:region% to '%0%'."
+
 setprice-noPermission: "You don't have permission to change the price of a region."
 setprice-help: "/as setprice <price> [region], the region you stand in will be used if not specified."
 setprice-notRegistered: "The specified region is not registered: %0%."
@@ -336,6 +365,7 @@ setup-noPermissionBuy: "You don't have permission for setting up buy regions."
 setup-couldNotDetect: "Found multiple regions with the same priority and/or parent/child relation, specify one on the second line (2 of the regions that were found: %lang:tRegion|%0%|% and %lang:tRegion|%1%|%)."
 setup-blacklisted: "%0% is on the blacklist and cannot be added to AreaShop."
 setup-noPermission: "You cannot add the region '%0%', you are not an owner/member or don't have the permission for it."
+setup-selectionWorldMismatch: "Your selection is in a different world!"
 
 destroy-noPermissionRent: "You don't have permission for deregistering a rental region."
 destroy-noPermissionBuy: "You don't have permission for deregistering a buy region."
@@ -575,6 +605,9 @@ import-alreadyAddedOtherWorld: "[red]Region '%0%' has already been added in worl
 import-invalidSignLocation: "[red]Failed to import a sign of region '%0%', invalid location: '%1%'."
 import-signAlreadyAdded: "[red]Skipped adding sign at location '%1%' to region '%0%', it is already added to region '%2%'."
 import-moneyBackFailed: "[red]Failed to parse buy price '%0%' and sell price '%1%' to set the money back percentage."
+
+quickadd-failedCreateWGRegion: "Failed to create the worldguard region!"
+quickdelete-WGRegionDeleted: "Successfully removed %0%!"
 
 confirm-rent:
   - "%lang:prefix%Are you sure you want to rent %lang:tRegion|%0%|%?[break]"

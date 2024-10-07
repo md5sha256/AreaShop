@@ -1,5 +1,9 @@
 package me.wiefferink.areashop;
 
+import org.bukkit.OfflinePlayer;
+
+import javax.annotation.Nonnull;
+
 public interface MessageBridge {
     /**
      * Send a message to a target without a prefix.
@@ -18,4 +22,8 @@ public interface MessageBridge {
      * @param replacements The replacements to insert in the message
      */
     void message(Object target, String key, Object... replacements);
+
+    void messagePersistent(@Nonnull OfflinePlayer target,
+                           @Nonnull String key,
+                           @Nonnull Object... replacements);
 }

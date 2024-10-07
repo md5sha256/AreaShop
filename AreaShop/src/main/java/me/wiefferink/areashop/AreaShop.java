@@ -6,13 +6,17 @@ import com.google.inject.Stage;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import io.papermc.lib.PaperLib;
+import me.wiefferink.areashop.adapters.platform.MinecraftPlatform;
+import me.wiefferink.areashop.adapters.platform.paper.PaperPlatform;
+import me.wiefferink.areashop.commands.util.AreashopCommands;
+import me.wiefferink.areashop.extensions.AreashopExtension;
 import me.wiefferink.areashop.features.signs.SignManager;
 import me.wiefferink.areashop.hook.placeholders.PlaceholderHook;
 import me.wiefferink.areashop.interfaces.AreaShopInterface;
 import me.wiefferink.areashop.interfaces.WorldEditInterface;
 import me.wiefferink.areashop.interfaces.WorldGuardInterface;
 import me.wiefferink.areashop.listeners.PlayerLoginLogoutListener;
-import me.wiefferink.areashop.managers.CommandManager;
 import me.wiefferink.areashop.managers.FeatureManager;
 import me.wiefferink.areashop.managers.IFileManager;
 import me.wiefferink.areashop.managers.FileManager;
@@ -22,10 +26,15 @@ import me.wiefferink.areashop.managers.SignLinkerManager;
 import me.wiefferink.areashop.modules.AreaShopModule;
 import me.wiefferink.areashop.modules.BukkitModule;
 import me.wiefferink.areashop.modules.DependencyModule;
-import me.wiefferink.areashop.nms.NMS;
+import me.wiefferink.areashop.modules.PlatformModule;
+import me.wiefferink.areashop.services.ServiceManager;
 import me.wiefferink.areashop.tools.GithubUpdateCheck;
+import me.wiefferink.areashop.tools.LanguageConverter;
 import me.wiefferink.areashop.tools.SimpleMessageBridge;
+import me.wiefferink.areashop.tools.SpigotPlatform;
 import me.wiefferink.areashop.tools.Utils;
+import me.wiefferink.areashop.tools.version.Version;
+import me.wiefferink.areashop.tools.version.VersionUtil;
 import me.wiefferink.bukkitdo.Do;
 import me.wiefferink.interactivemessenger.source.LanguageManager;
 import net.milkbowl.vault.economy.Economy;
@@ -43,14 +52,18 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 /**
  * Main class for the AreaShop plugin.
@@ -66,11 +79,9 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 	private WorldGuardInterface worldGuardInterface = null;
 	private WorldEditPlugin worldEdit = null;
 	private WorldEditInterface worldEditInterface = null;
-	private NMS nms;
 	private MessageBridge messageBridge;
 	private IFileManager fileManager = null;
 	private LanguageManager languageManager = null;
-	private CommandManager commandManager = null;
 	private SignLinkerManager signLinkerManager = null;
 	private FeatureManager featureManager = null;
 	private SignManager signManager;
@@ -80,6 +91,8 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 	private List<String> chatprefix = null;
 	private boolean ready = false;
 	private GithubUpdateCheck githubUpdateCheck = null;
+
+	private final ServiceManager serviceManager = new ServiceManager();
 
 	// Folders and file names
 	public static final String languageFolder = "lang";
@@ -164,22 +177,26 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 		AreaShop.instance = this;
 		Do.init(this);
 		managers = new HashSet<>();
-		messageBridge = new SimpleMessageBridge();
+		messageBridge = new SimpleMessageBridge(this.serviceManager);
 		signErrorLogger = new SignErrorLogger(new File(getDataFolder(), signLogFile));
 
 		// Setup NMS Impl
-		String rawServerVersion = Bukkit.getServer().getClass().getPackageName();
-		String[] split = rawServerVersion.split("\\.");
-		String serverVersion = split[3];
-		try {
-			Class<?> nmsImpl = Class.forName("me.wiefferink.areashop.adapters.platform." + serverVersion + ".NMSImpl");
-			this.nms = nmsImpl.asSubclass(NMS.class).getConstructor().newInstance();
-		} catch (ReflectiveOperationException ex) {
-			ex.printStackTrace();
-			error("Failed to initialize NMS implementation!");
+		Version currentServerVersion = VersionUtil.parseMinecraftVersion(Bukkit.getBukkitVersion());
+		if (currentServerVersion.versionData().isOlderThan(VersionUtil.MC_1_21)) {
+			error("Unsupported minecraft version: " + currentServerVersion + "! Minimum is 1.21");
 			shutdownOnError();
 			return;
 		}
+
+		final MinecraftPlatform platform;
+		if (PaperLib.isPaper()) {
+			platform = new PaperPlatform(this);
+			info("Detected Paper; using the PaperPlatform impl");
+		} else {
+			platform = new SpigotPlatform(this);
+			info("Detected Spigot; using the SpigotPlatform impl");
+		}
+		final PlatformModule platformModule = new PlatformModule(platform);
 
 		// Check if Vault is present
 		if(getServer().getPluginManager().getPlugin("Vault") == null) {
@@ -241,7 +258,15 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 			return;
 		}
 
-		AreaShopModule asModule = new AreaShopModule(this, messageBridge, nms, worldEditInterface, worldGuardInterface, signErrorLogger, dependencyModule);
+		AreaShopModule asModule = new AreaShopModule(this,
+				this.messageBridge,
+				this.worldEditInterface,
+				this.worldGuardInterface,
+				this.signErrorLogger,
+				this.serviceManager,
+				platformModule,
+				dependencyModule
+		);
 		injector = Guice.createInjector(Stage.PRODUCTION, new BukkitModule(getServer()), asModule);
 
 		// Load all data from files and check versions
@@ -253,22 +278,25 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 			return;
 		}
 
+		performLanguageMigrations();
 		setupLanguageManager();
 
 		featureManager = injector.getInstance(FeatureManager.class);
 		featureManager.initializeFeatures(injector);
 		managers.add(featureManager);
-		signManager = new SignManager();
+		signManager = injector.getInstance(SignManager.class);
 		managers.add(signManager);
+
+		loadExtensions();
 
 		// Register the event listeners
 		getServer().getPluginManager().registerEvents(new PlayerLoginLogoutListener(this, messageBridge), this);
 
 		setupTasks();
 
-		// Startup the CommandManager (registers itself for the command)
-		commandManager = injector.getInstance(CommandManager.class);
-		managers.add(commandManager);
+		// Register commands
+		AreashopCommands commands = injector.getInstance(AreashopCommands.class);
+		commands.registerCommands();
 
 		// Create a signLinkerManager
 		signLinkerManager = injector.getInstance(SignLinkerManager.class);
@@ -289,15 +317,18 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 					this,
 					"md5sha256",
 					"AreaShop"
-			).withVersionComparator((latestVersion, currentVersion) ->
-					!cleanVersion(latestVersion).equals(cleanVersion(currentVersion))
+			).withVersionComparator((latestVersion, currentVersion) -> {
+				Version latest = Version.parse(cleanVersion(latestVersion));
+				Version current = Version.parse(cleanVersion(currentVersion));
+				return latest.versionData().isNewerThan(current.versionData());
+			}
 			).checkUpdate(result -> {
 				AreaShop.debug("Update check result:", result);
 				if(!result.hasUpdate()) {
 					return;
 				}
 
-				AreaShop.info("Update from AreaShop V" + cleanVersion(result.getCurrentVersion()) + " to AreaShop V" + cleanVersion(result.getLatestVersion()) + " available, get the latest version at https://github.com/md5sha256/releases");
+				AreaShop.info("Update from AreaShop V" + cleanVersion(result.getCurrentVersion()) + " to AreaShop V" + cleanVersion(result.getLatestVersion()) + " available, get the latest version at https://github.com/md5sha256/AreaShop/releases");
 				for(Player player : Utils.getOnlinePlayers()) {
 					notifyUpdate(player);
 				}
@@ -318,6 +349,25 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 	private void shutdownOnError() {
 		error("The plugin has not started, fix the errors listed above");
 		getServer().getPluginManager().disablePlugin(this);
+	}
+
+	private void loadExtensions() {
+		if (this.getServer().getPluginManager().isPluginEnabled("Essentials")) {
+			loadEssentialsExt().ifPresent(ext -> ext.init(this, this.injector));
+		}
+	}
+
+	private Optional<AreashopExtension> loadEssentialsExt() {
+		try {
+			Class<?> clazz = Class.forName("me.wiefferink.areashop.adapters.plugins.essentials.EssentialsExtension");
+			Class<? extends AreashopExtension> extClass = clazz.asSubclass(AreashopExtension.class);
+			AreashopExtension extension = extClass.getConstructor().newInstance();
+			return Optional.of(extension);
+		} catch (ReflectiveOperationException ex) {
+			error("Failed to initialize the essentials extension!");
+			ex.printStackTrace();
+		}
+		return Optional.empty();
 	}
 
 	/**
@@ -358,6 +408,14 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 	}
 
 	/**
+	 * Indicates if the plugin will be using MiniMessage or not
+	 * @return true if MiniMessage should be used, false otherwise
+	 */
+	public static boolean useMiniMessage() {
+		return getInstance().getConfig().getBoolean("useMiniMessage");
+	}
+
+	/**
 	 * Indicates if the plugin is ready to be used.
 	 * @return true if the plugin is ready, false otherwise
 	 */
@@ -381,16 +439,53 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 		this.debug = debug;
 	}
 
+	private void performLanguageMigrations() {
+		boolean migrateExisting = this.getConfig().getBoolean("migrateLanguages", false);
+		if (!migrateExisting) {
+			return;
+		}
+		getLogger().info("Performing language migration");
+		List<String> chatPrefix = getConfig().getStringList("chatPrefix");
+		List<String> convertedChatPrefix = LanguageConverter.convertRawList(chatPrefix);
+		if (convertedChatPrefix.size() == 1) {
+			getConfig().set("mmChatPrefix", convertedChatPrefix.getFirst());
+		} else {
+			getConfig().set("mmChatPrefix", convertedChatPrefix);
+		}
+		saveConfig();
+		File existingLanguages = getDataFolder().toPath().resolve(languageFolder).toFile();
+		File[] langFiles = existingLanguages.listFiles(file -> file.getName().endsWith(".yml"));
+		if (langFiles == null) {
+			return;
+		}
+		for (File file : langFiles) {
+			String name = file.getName();
+			String langName = name.substring(0, name.length() - 4);
+			if (langName.endsWith("-MM")) {
+				debug("Skipping migration for " + langName + " as it already exists.");
+				continue;
+			}
+			File toMigrate = new File(existingLanguages, langName + "-MM.yml");
+			try {
+				LanguageConverter.performConversion(file, toMigrate);
+			} catch (IOException ex) {
+				getLogger().log(Level.SEVERE, "Failed to perform migration for lang: " + file.getName(), ex);
+			}
+		}
+		getLogger().info("Language migration complete!");
+	}
+
 	/**
 	 * Setup a new LanguageManager.
 	 */
 	private void setupLanguageManager() {
-		languageManager = new LanguageManager(
+		languageManager = new ASLanguageManager(
 				this,
 				languageFolder,
-				getConfig().getString("language"),
+				useMiniMessage() ? getConfig().getString("mmLanguage") : getConfig().getString("language"),
 				"EN",
-				chatprefix
+				useMiniMessage() ? getConfig().getStringList("mmChatPrefix") : chatprefix,
+				getConfig().getString("wgPrefix")
 		);
 	}
 
@@ -400,10 +495,6 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 	 */
 	public void setChatprefix(List<String> chatprefix) {
 		this.chatprefix = chatprefix;
-	}
-
-	public NMS getNms() {
-		return nms;
 	}
 
 	public SignErrorLogger getSignErrorLogger() {
@@ -473,16 +564,6 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 	}
 
 	/**
-	 * Function to get the CommandManager.
-	 * @return the CommandManager
-	 */
-	@Nonnull
-	@Override
-	public CommandManager getCommandManager() {
-		return commandManager;
-	}
-
-	/**
 	 * Get the SignLinkerManager.
 	 * Handles sign linking mode.
 	 * @return The SignLinkerManager
@@ -504,11 +585,16 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 		return featureManager;
 	}
 
+	@NotNull
+	@Override
+	public ServiceManager getServiceManager() {
+		return this.serviceManager;
+	}
+
 	/**
 	 * Function to get the Vault plugin.
 	 * @return Economy
 	 */
-	@Deprecated
 	private Economy getEconomy() {
 		RegisteredServiceProvider<Economy> economy = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
 		if(economy == null) {
@@ -522,7 +608,6 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 	 * Get the Vault permissions provider.
 	 * @return Vault permissions provider
 	 */
-	@Deprecated
 	private net.milkbowl.vault.permission.Permission getPermissionProvider() {
 		RegisteredServiceProvider<net.milkbowl.vault.permission.Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
 		if (permissionProvider == null) {

@@ -6,16 +6,38 @@
 # ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 # │ GENERAL: Options that influence the global state of the plugin                                                             │
 # └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-# Chat prefix used for all messages in the chat, also changes the greeting messages.
+
+# Chat prefix used for all messages in the chat
 chatPrefix:
   - '[darkgreen][AreaShop][reset]'
   - '  hover: AreaShop region management plugin'
   - '  hover: %lang:action|Click to check the available commands|%'
   - '  command: /areashop help'
   - ' '
+
+# WorldGuard doesn't support MiniMessage, so when setting WorldGuard Greetings, this prefix is used instead. (Bukkit color codes)
+wgPrefix: '&2[AreaShop] &r'
+
+# Whether languages should be migrated to MiniMessage
+migrateLanguages: false
+
 # The language file that should be used, check the 'lang' folder for build-in languages (use the filename without .yml here).
 # More information can be found here: https://github.com/NLthijs48/AreaShop/wiki/Language-support.
+# NOTE: If you want to use MiniMessage, make sure you're using mmLanguage below.
 language: EN
+
+# Whether you want to use MiniMessage (in Paper) or stick to the older built-in language management for AreaShop messages.
+useMiniMessage: false
+
+# Chat prefix used for all messages in chat
+# **THIS IS ONLY APPLICABLE IF UseMiniMessage IS SET TO TRUE**
+mmChatPrefix:
+  - '<click:run_command:/areashop help><hover:show_text:"AreaShop region management plugin<newline>%lang:action|Click to check the available commands|%"><dark_green>[AreaShop]<reset> '
+
+# The language file that should be used, check the 'lang' folder for build-in languages (use the filename without .yml here).
+# **THIS IS ONLY APPLICABLE IF UseMiniMessage IS SET TO TRUE**
+mmLanguage: EN-MM
+
 # The tags that need to be written on the first line of a sign to add it to AreaShop.
 signTags:
   # Add a rental region.
@@ -182,4 +204,4 @@ maximumTries: 50000
 # %tpyaw%          The exact yaw of the teleport location
 # %tpyawround%     The rounded yaw of the teleport location
 # %tpworld%        The world name of the teleport location
-# %lang:<languageKey>|Optional arguments|%  Insert a message from EN.yml, for example: '%lang:timeleft-ended%' or '%lang:timeleft-years|15|%'
+# %lang:<languageKey>|Optional arguments|%  Insert a message from your language yml file, for example: '%lang:timeleft-ended%' or '%lang:timeleft-years|15|%'

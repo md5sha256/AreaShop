@@ -3,6 +3,7 @@ package me.wiefferink.areashop.regions;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import me.wiefferink.areashop.AreaShop;
+import me.wiefferink.areashop.MessageBridge;
 import me.wiefferink.areashop.events.ask.BuyingRegionEvent;
 import me.wiefferink.areashop.events.ask.ResellingRegionEvent;
 import me.wiefferink.areashop.events.ask.SellingRegionEvent;
@@ -30,17 +31,18 @@ import java.util.UUID;
 public class BuyRegion extends GeneralRegion {
 
 	private final Economy economy;
-	
+
 	@AssistedInject
 	BuyRegion(
 			@Nonnull AreaShop plugin,
 			@Nonnull FeatureManager featureManager,
 			@Nonnull WorldEditInterface worldEditInterface,
 			@Nonnull WorldGuardInterface worldGuardInterface,
+			@Nonnull MessageBridge messageBridge,
 			@Nullable Economy economy,
 			@Assisted @Nonnull YamlConfiguration config
 	) {
-		super(plugin, featureManager, worldEditInterface, worldGuardInterface, config);
+		super(plugin, featureManager, worldEditInterface, worldGuardInterface, messageBridge, config);
 		this.economy = economy;
 	}
 
@@ -50,12 +52,28 @@ public class BuyRegion extends GeneralRegion {
 			@Nonnull FeatureManager featureManager,
 			@Nonnull WorldEditInterface worldEditInterface,
 			@Nonnull WorldGuardInterface worldGuardInterface,
+			@Nonnull MessageBridge messageBridge,
 			@Nullable Economy economy,
 			@Assisted @Nonnull String name,
 			@Assisted @Nonnull World world
 	) {
-		super(plugin, featureManager, worldEditInterface, worldGuardInterface, name, world);
+		super(plugin, featureManager, worldEditInterface, worldGuardInterface, messageBridge, name, world);
 		this.economy = economy;
+	}
+
+	@Override
+	public boolean isOwner(UUID player) {
+		return isBuyer(player);
+	}
+
+	@Override
+	public UUID getOwner() {
+		return getBuyer();
+	}
+
+	@Override
+	public void setOwner(UUID player) {
+		setBuyer(player);
 	}
 
 	@Override
@@ -129,7 +147,7 @@ public class BuyRegion extends GeneralRegion {
 	 */
 	public String getPlayerName() {
 		String result = Utils.toName(getBuyer());
-		if(result == null || result.isEmpty()) {
+		if(result.isEmpty()) {
 			result = getStringSetting("buy.buyerName");
 			if(result == null || result.isEmpty()) {
 				result = "<UNKNOWN>";
@@ -237,31 +255,20 @@ public class BuyRegion extends GeneralRegion {
 
 	@Override
 	public Object provideReplacement(String variable) {
-		switch(variable) {
-			case AreaShop.tagPrice:
-				return getFormattedPrice();
-			case AreaShop.tagRawPrice:
-				return getPrice();
-			case AreaShop.tagPlayerName:
-				return getPlayerName();
-			case AreaShop.tagPlayerUUID:
-				return getBuyer();
-			case AreaShop.tagResellPrice:
-				return getFormattedResellPrice();
-			case AreaShop.tagRawResellPrice:
-				return getResellPrice();
-			case AreaShop.tagMoneyBackAmount:
-				return getFormattedMoneyBackAmount();
-			case AreaShop.tagRawMoneyBackAmount:
-				return getMoneyBackAmount();
-			case AreaShop.tagMoneyBackPercentage:
-				return getMoneyBackPercentage() % 1.0 == 0.0 ? (int)getMoneyBackPercentage() : getMoneyBackPercentage();
-			case AreaShop.tagMaxInactiveTime:
-				return this.getFormattedInactiveTimeUntilSell();
-
-			default:
-				return super.provideReplacement(variable);
-		}
+        return switch (variable) {
+            case AreaShop.tagPrice -> getFormattedPrice();
+            case AreaShop.tagRawPrice -> getPrice();
+            case AreaShop.tagPlayerName -> getPlayerName();
+            case AreaShop.tagPlayerUUID -> getBuyer();
+            case AreaShop.tagResellPrice -> getFormattedResellPrice();
+            case AreaShop.tagRawResellPrice -> getResellPrice();
+            case AreaShop.tagMoneyBackAmount -> getFormattedMoneyBackAmount();
+            case AreaShop.tagRawMoneyBackAmount -> getMoneyBackAmount();
+            case AreaShop.tagMoneyBackPercentage ->
+                    getMoneyBackPercentage() % 1.0 == 0.0 ? (int) getMoneyBackPercentage() : getMoneyBackPercentage();
+            case AreaShop.tagMaxInactiveTime -> this.getFormattedInactiveTimeUntilSell();
+            default -> super.provideReplacement(variable);
+        };
 	}
 
 	/**
@@ -395,7 +402,7 @@ public class BuyRegion extends GeneralRegion {
 			r = null;
 			OfflinePlayer oldOwnerPlayer = Bukkit.getOfflinePlayer(oldOwner);
 			String oldOwnerName = getPlayerName();
-			if(oldOwnerPlayer != null && oldOwnerPlayer.getName() != null) {
+			if(oldOwnerPlayer.getName() != null) {
 				r = economy.depositPlayer(oldOwnerPlayer, getWorldName(), getResellPrice());
 				oldOwnerName = oldOwnerPlayer.getName();
 			} else if(oldOwnerName != null) {
@@ -404,8 +411,6 @@ public class BuyRegion extends GeneralRegion {
 			if(r == null || !r.transactionSuccess()) {
 				AreaShop.warn("Something went wrong with paying '" + oldOwnerName + "' " + getFormattedPrice() + " for his resell of region " + getName() + " to " + offlinePlayer.getName());
 			}
-			// Resell is done, disable that now
-			disableReselling();
 
 			// Set the owner
 			setBuyer(offlinePlayer.getUniqueId());
@@ -416,6 +421,9 @@ public class BuyRegion extends GeneralRegion {
 
 			// Notify about updates
 			this.notifyAndUpdate(new ResoldRegionEvent(this, oldOwner));
+
+			// Resell is done, disable that now
+			disableReselling();
 
 			// Send message to the player
 			message(offlinePlayer, "buy-successResale", oldOwnerName);
@@ -534,7 +542,7 @@ public class BuyRegion extends GeneralRegion {
 
 			// Give back the money
 			OfflinePlayer player = Bukkit.getOfflinePlayer(getBuyer());
-			if(player.hasPlayedBefore() && !noPayBack) {
+			if((player.hasPlayedBefore() || player.isOnline()) && !noPayBack) {
 				EconomyResponse response = null;
 				boolean error = false;
 				try {

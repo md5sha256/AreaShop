@@ -103,7 +103,7 @@ public class FriendsFeature extends RegionFeature {
 		HashSet<String> result = new HashSet<>();
 		for(UUID friend : getFriends()) {
 			OfflinePlayer player = Bukkit.getOfflinePlayer(friend);
-			if(player != null && player.getName() != null) {
+			if(player.getName() != null) {
 				result.add(player.getName());
 			}
 		}

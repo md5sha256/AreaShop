@@ -2,6 +2,7 @@ package me.wiefferink.areashop.tools;
 
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import jakarta.inject.Inject;
 import me.wiefferink.areashop.AreaShop;
 import me.wiefferink.areashop.interfaces.WorldEditSelection;
 import me.wiefferink.areashop.interfaces.WorldGuardInterface;
@@ -23,7 +24,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -396,10 +396,10 @@ public class Utils {
 					result.add(pr);
 					first = false;
 				} else {
-					if(pr.getPriority() > result.get(0).getPriority()) {
+					if(pr.getPriority() > result.getFirst().getPriority()) {
 						result.clear();
 						result.add(pr);
-					} else if(pr.getParent() != null && pr.getParent().equals(result.get(0))) {
+					} else if(pr.getParent() != null && pr.getParent().equals(result.getFirst())) {
 						result.clear();
 						result.add(pr);
 					} else {
@@ -480,10 +480,10 @@ public class Utils {
 					result.add(region);
 					first = false;
 				} else {
-					if(region.getRegion().getPriority() > result.get(0).getRegion().getPriority()) {
+					if(region.getRegion().getPriority() > result.getFirst().getRegion().getPriority()) {
 						result.clear();
 						result.add(region);
-					} else if(region.getRegion().getParent() != null && region.getRegion().getParent().equals(result.get(0).getRegion())) {
+					} else if(region.getRegion().getParent() != null && region.getRegion().getParent().equals(result.getFirst().getRegion())) {
 						result.clear();
 						result.add(region);
 					} else {
@@ -523,7 +523,7 @@ public class Utils {
 		String result;
 		// Check for infinite and NaN
 		if(Double.isInfinite(amount)) {
-			result = "\u221E"; // Infinite symbol
+			result = "∞"; // Infinite symbol
 		} else if(Double.isNaN(amount)) {
 			result = "NaN";
 		} else {
@@ -802,16 +802,15 @@ public class Utils {
 	 * @return the name of the player
 	 */
 	public static String toName(UUID uuid) {
-		if(uuid == null) {
-			return "";
-		} else {
-			String name = Bukkit.getOfflinePlayer(uuid).getName();
-			if(name != null) {
-				return name;
-			}
-			return "";
-		}
-	}
+        if (uuid == null) {
+            return "";
+        }
+        String name = Bukkit.getOfflinePlayer(uuid).getName();
+        if (name != null) {
+            return name;
+        }
+        return "";
+    }
 
 	/**
 	 * Conversion from name to uuid.

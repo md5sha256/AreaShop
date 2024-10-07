@@ -3,7 +3,7 @@ package me.wiefferink.areashop.tools;
 /**
  * Parse math from a string
  * Adapted from:
- * https://stackoverflow.com/questions/3422673/how-to-evaluate-a-math-expression-given-in-string-form
+ * <a href="https://stackoverflow.com/questions/3422673/how-to-evaluate-a-math-expression-given-in-string-form">...</a>
  */
 public final class OperandParser {
 

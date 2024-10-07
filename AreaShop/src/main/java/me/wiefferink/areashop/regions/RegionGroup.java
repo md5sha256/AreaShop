@@ -15,8 +15,7 @@ import java.util.Set;
 // TODO consider switching to saving lowercase regions
 public class RegionGroup {
 
-	private final Plugin plugin;
-	private final IFileManager fileManager;
+    private final IFileManager fileManager;
 	private final String name;
 	private final Set<String> regions;
 	private Set<String> autoRegions;
@@ -30,8 +29,7 @@ public class RegionGroup {
 	 */
 	@AssistedInject
 	RegionGroup(@Nonnull Plugin plugin, @Nonnull IFileManager fileManager, @Assisted String name) {
-		this.plugin = plugin;
-		this.fileManager = fileManager;
+        this.fileManager = fileManager;
 		this.name = name;
 		this.autoDirty = true;
 		setSetting("name", name);

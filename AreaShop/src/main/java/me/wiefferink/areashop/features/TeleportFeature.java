@@ -3,6 +3,7 @@ package me.wiefferink.areashop.features;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import jakarta.inject.Inject;
 import me.wiefferink.areashop.AreaShop;
 import me.wiefferink.areashop.features.signs.RegionSign;
 import me.wiefferink.areashop.features.signs.SignManager;
@@ -19,7 +20,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Iterator;

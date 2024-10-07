@@ -1,5 +1,7 @@
 package me.wiefferink.areashop.features;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import me.wiefferink.areashop.AreaShop;
 import me.wiefferink.areashop.events.ask.BuyingRegionEvent;
 import me.wiefferink.areashop.events.ask.RentingRegionEvent;
@@ -20,8 +22,6 @@ import me.wiefferink.areashop.tools.Utils;
 import org.bukkit.event.EventHandler;
 
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 @Singleton
 public class DebugFeature extends RegionFeature {

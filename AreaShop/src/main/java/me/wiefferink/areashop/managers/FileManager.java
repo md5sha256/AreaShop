@@ -4,6 +4,8 @@ import com.google.common.io.Files;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import io.github.bakedlibs.dough.blocks.BlockPosition;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import me.wiefferink.areashop.AreaShop;
 import me.wiefferink.areashop.MessageBridge;
 import me.wiefferink.areashop.events.ask.AddingRegionEvent;
@@ -11,6 +13,7 @@ import me.wiefferink.areashop.events.ask.DeletingRegionEvent;
 import me.wiefferink.areashop.events.notify.AddedRegionEvent;
 import me.wiefferink.areashop.events.notify.DeletedRegionEvent;
 import me.wiefferink.areashop.interfaces.GeneralRegionInterface;
+import me.wiefferink.areashop.features.signs.SignManager;
 import me.wiefferink.areashop.interfaces.WorldGuardInterface;
 import me.wiefferink.areashop.regions.BuyRegion;
 import me.wiefferink.areashop.regions.GeneralRegion;
@@ -35,8 +38,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -54,6 +55,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,6 +80,8 @@ public class FileManager extends Manager implements IFileManager {
 	private HashMap<String, Integer> versions = null;
 	private final String versionPath;
 	private final String schemFolder;
+
+	private final SignManager signManager;
 	private final WorldGuardInterface worldGuardInterface;
 	private final MessageBridge messageBridge;
 	private final RegionFactory regionFactory;
@@ -90,12 +94,14 @@ public class FileManager extends Manager implements IFileManager {
 			@Nonnull AreaShop plugin,
 			@Nonnull WorldGuardInterface worldGuardInterface,
 			@Nonnull MessageBridge messageBridge,
-			@Nonnull RegionFactory regionFactory
+			@Nonnull RegionFactory regionFactory,
+			@Nonnull SignManager signManager
 	) {
 		this.plugin = plugin;
 		this.worldGuardInterface = worldGuardInterface;
 		this.messageBridge = messageBridge;
 		this.regionFactory = regionFactory;
+		this.signManager = signManager;
 		regionsPath = plugin.getDataFolder() + File.separator + AreaShop.regionsFolder;
 		configPath = plugin.getDataFolder() + File.separator + "config.yml";
 		groups = new HashMap<>();
@@ -115,7 +121,11 @@ public class FileManager extends Manager implements IFileManager {
 	public void shutdown() {
 		// Update lastactive time for players that are online now
 		for(GeneralRegion region : this.regionContainer.getRegionsRef()) {
-			Player player = Bukkit.getPlayer(region.getOwner());
+			UUID ownerUuid = region.getOwner();
+			if (ownerUuid == null) {
+				continue;
+			}
+			Player player = Bukkit.getPlayer(ownerUuid);
 			if(player != null) {
 				region.updateLastActiveTime();
 			}
@@ -466,8 +476,11 @@ public class FileManager extends Manager implements IFileManager {
 
 		// Delete the signs
 		if(region.getWorld() != null) {
-			for(BlockPosition sign : region.getSignsFeature().signManager().allSignLocations()) {
+			SignManager regionSignManager = region.getSignsFeature().signManager();
+			for(BlockPosition sign : regionSignManager.allSignLocations()) {
 				sign.getBlock().setType(Material.AIR);
+				regionSignManager.removeSign(sign);
+				this.signManager.removeSign(sign);
 			}
 		}
 
@@ -1051,8 +1064,8 @@ public class FileManager extends Manager implements IFileManager {
 		boolean noWorldRegions = !noWorld.isEmpty();
 		while(!noWorld.isEmpty()) {
 			List<GeneralRegion> toDisplay = new ArrayList<>();
-			String missingWorld = noWorld.get(0).getWorldName();
-			toDisplay.add(noWorld.get(0));
+			String missingWorld = noWorld.getFirst().getWorldName();
+			toDisplay.add(noWorld.getFirst());
 			for(int i = 1; i < noWorld.size(); i++) {
 				if(noWorld.get(i).getWorldName().equalsIgnoreCase(missingWorld)) {
 					toDisplay.add(noWorld.get(i));

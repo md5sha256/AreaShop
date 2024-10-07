@@ -26,10 +26,10 @@ import com.sk89q.worldedit.world.entity.EntityType;
 import com.sk89q.worldedit.world.entity.EntityTypes;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import me.wiefferink.areashop.interfaces.AreaShopInterface;
+import me.wiefferink.areashop.interfaces.ExceptionUtil;
 import me.wiefferink.areashop.interfaces.GeneralRegionInterface;
 import me.wiefferink.areashop.interfaces.WorldEditInterface;
 import me.wiefferink.areashop.interfaces.WorldEditSelection;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -38,7 +38,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Objects;
 
 public class WorldEditHandler extends WorldEditInterface {
 
@@ -107,9 +106,10 @@ public class WorldEditHandler extends WorldEditInterface {
 		try (InputStream is = new FileInputStream(finalFile);
 			 ClipboardReader reader = format.getReader(is)) {
 			Clipboard clipboard = reader.read();
-			if (!clipboard.getDimensions().equals(dimensions)) {
+			BlockVector3 clipboardDimensions = clipboard.getDimensions();
+			if (!clipboardDimensions.equals(dimensions)) {
 				pluginInterface.getLogger().warning(() -> "Size of the region " + regionInterface.getName() + " is not the same as the schematic to restore!");
-				pluginInterface.debugI("schematic|region, x:" + clipboard.getDimensions().getX() + "|" + regionInterface.getWidth() + ", y:" + clipboard.getDimensions().getY() + "|" + regionInterface.getHeight() + ", z:" + clipboard.getDimensions().getZ() + "|" + regionInterface.getDepth());
+				pluginInterface.debugI("schematic|region, x:" + clipboardDimensions.x() + "|" + regionInterface.getWidth() + ", y:" + clipboardDimensions.y() + "|" + regionInterface.getHeight() + ", z:" + clipboardDimensions.z() + "|" + regionInterface.getDepth());
 				return false;
 			}
 			final Operation operation = new ClipboardHolder(clipboard).createPaste(world)
@@ -119,18 +119,20 @@ public class WorldEditHandler extends WorldEditInterface {
 			Operations.complete(operation);
 			return true;
 		} catch (IOException | WorldEditException ex) {
+
 			pluginInterface.getLogger().warning(() ->"An error occurred while restoring schematic of " + regionInterface.getName() + ", enable debug to see the complete stacktrace");
-			pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+
+			pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
 		} catch (Exception ex) {
 			pluginInterface.getLogger().warning(() -> "crashed during restore of " + regionInterface.getName());
-			pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+			pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
 		}
 		return false;
 	}
 
 	@Override
 	public boolean saveRegionBlocks(File file, GeneralRegionInterface regionInterface) {
-		final ClipboardFormat format = BuiltInClipboardFormat.SPONGE_SCHEMATIC;
+		final ClipboardFormat format = BuiltInClipboardFormat.SPONGE_V3_SCHEMATIC;
 		final File targetFile = new File(file.getAbsolutePath() + "." + format.getPrimaryFileExtension());
 		ProtectedRegion wgRegion = regionInterface.getRegion();
 		Region region = new CuboidRegion(wgRegion.getMinimumPoint(), wgRegion.getMaximumPoint());
@@ -153,7 +155,7 @@ public class WorldEditHandler extends WorldEditInterface {
 			Operations.complete(copy);
 		} catch (WorldEditException ex) {
 			pluginInterface.getLogger().warning(() -> "An error occurred while saving schematic of " + regionInterface.getName() + ", enable debug to see the complete stacktrace");
-			pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+			pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
 		}
 		try (OutputStream os = new FileOutputStream(targetFile);
 			 ClipboardWriter writer = format.getWriter(os)) {
@@ -161,10 +163,10 @@ public class WorldEditHandler extends WorldEditInterface {
 			return true;
 		} catch (IOException ex) {
 			pluginInterface.getLogger().warning(() -> "An error occurred while saving schematic of " + regionInterface.getName() + ", enable debug to see the complete stacktrace");
-			pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+			pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
 		} catch (Exception ex) {
 			pluginInterface.getLogger().warning(() -> "crashed during save of " + regionInterface.getName());
-			pluginInterface.debugI(() -> ExceptionUtils.getStackTrace(ex));
+			pluginInterface.debugI(() -> ExceptionUtil.getStackTrace(ex));
 		}
 		return false;
 	}
@@ -192,7 +194,7 @@ public class WorldEditHandler extends WorldEditInterface {
 			return false;
 		} catch (WorldEditException ex) {
 			pluginInterface.getLogger().warning("crashed during save of " + regionInterface.getName());
-			pluginInterface.debugI(ExceptionUtils.getStackTrace(ex));
+			pluginInterface.debugI(ExceptionUtil.getStackTrace(ex));
 			return true;
 		}
 	}

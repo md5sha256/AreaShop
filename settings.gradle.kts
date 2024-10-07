@@ -1,10 +1,6 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven {
-            name = "paper-repo"
-            url = uri("https://papermc.io/repo/repository/maven-public/")
-        }
     }
 }
 
@@ -19,15 +15,17 @@ rootProject.name = "areashop-parent"
 
 // Interfaces
 include(":areashop-interface")
-include(":areashop-nms")
 
 // Adapters
-include(":adapters:platform:bukkit-1-17")
-include(":adapters:platform:bukkit-1-18")
-include(":adapters:platform:bukkit-1-19")
+include(":adapters:platform:paper")
+include(":adapters:platform:platform-interface")
+
 include(":adapters:plugins:worldedit")
 include(":adapters:plugins:worldguard")
 include(":adapters:plugins:fastasyncworldedit")
+
+include(":adapters:plugins:essentials")
+
 
 // Main project
 include(":areashop")

@@ -3,10 +3,12 @@ package me.wiefferink.areashop.regions;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import me.wiefferink.areashop.AreaShop;
+import me.wiefferink.areashop.MessageBridge;
 import me.wiefferink.areashop.events.ask.RentingRegionEvent;
 import me.wiefferink.areashop.events.ask.UnrentingRegionEvent;
 import me.wiefferink.areashop.events.notify.RentedRegionEvent;
 import me.wiefferink.areashop.events.notify.UnrentedRegionEvent;
+import me.wiefferink.areashop.features.signs.SignsFeature;
 import me.wiefferink.areashop.interfaces.WorldEditInterface;
 import me.wiefferink.areashop.interfaces.WorldGuardInterface;
 import me.wiefferink.areashop.managers.FeatureManager;
@@ -46,10 +48,11 @@ public class RentRegion extends GeneralRegion {
 			@Nonnull FeatureManager featureManager,
 			@Nonnull WorldEditInterface worldEditInterface,
 			@Nonnull WorldGuardInterface worldGuardInterface,
+			@Nonnull MessageBridge messageBridge,
 			@Nullable Economy economy,
 			@Assisted @Nonnull YamlConfiguration config
 	) {
-		super(plugin, featureManager, worldEditInterface, worldGuardInterface, config);
+		super(plugin, featureManager, worldEditInterface, worldGuardInterface, messageBridge, config);
 		this.economy = economy;
 	}
 
@@ -64,12 +67,36 @@ public class RentRegion extends GeneralRegion {
 			@Nonnull FeatureManager featureManager,
 			@Nonnull WorldEditInterface worldEditInterface,
 			@Nonnull WorldGuardInterface worldGuardInterface,
+			@Nonnull MessageBridge messageBridge,
 			@Nullable Economy economy,
 			@Assisted @Nonnull String name,
 			@Assisted @Nonnull World world
 	) {
-		super(plugin, featureManager, worldEditInterface, worldGuardInterface, name, world);
+		super(plugin, featureManager, worldEditInterface, worldGuardInterface, messageBridge, name, world);
 		this.economy = economy;
+	}
+
+	@Override
+	public boolean needsPeriodicUpdate() {
+		if (super.needsPeriodicUpdate()) {
+			return true;
+		}
+		return SignsFeature.exists(this) && getSignsFeature().signManager().needsPeriodicUpdate();
+	}
+
+	@Override
+	public boolean isOwner(UUID player) {
+		return isRenter(player);
+	}
+
+	@Override
+	public UUID getOwner() {
+		return getRenter();
+	}
+
+	@Override
+	public void setOwner(UUID player) {
+		setRenter(player);
 	}
 
 	@Override
@@ -165,43 +192,28 @@ public class RentRegion extends GeneralRegion {
 
 	@Override
 	public Object provideReplacement(String variable) {
-		switch(variable) {
-			case AreaShop.tagPrice:
-				return getFormattedPrice();
-			case AreaShop.tagRawPrice:
-				return getPrice();
-			case AreaShop.tagDuration:
-				return getDurationString();
-			case AreaShop.tagPlayerName:
-				return getPlayerName();
-			case AreaShop.tagPlayerUUID:
-				return getRenter();
-			case AreaShop.tagRentedUntil:
-				return new SimpleDateFormat(plugin.getConfig().getString("timeFormatChat")).format(new Date(getRentedUntil()));
-			case AreaShop.tagRentedUntilShort:
-				return new SimpleDateFormat(plugin.getConfig().getString("timeFormatSign")).format(new Date(getRentedUntil()));
-			case AreaShop.tagTimeLeft:
-				return getTimeLeftString();
-			case AreaShop.tagMoneyBackAmount:
-				return getFormattedMoneyBackAmount();
-			case AreaShop.tagRawMoneyBackAmount:
-				return getMoneyBackAmount();
-			case AreaShop.tagMoneyBackPercentage:
-				return (getMoneyBackPercentage() % 1.0) == 0.0 ? (int)getMoneyBackPercentage() : getMoneyBackPercentage();
-			case AreaShop.tagTimesExtended:
-				return this.getTimesExtended();
-			case AreaShop.tagMaxExtends:
-				return this.getMaxExtends();
-			case AreaShop.tagExtendsLeft:
-				return getMaxExtends() - getTimesExtended();
-			case AreaShop.tagMaxRentTime:
-				return millisToHumanFormat(getMaxRentTime());
-			case AreaShop.tagMaxInactiveTime:
-				return this.getFormattedInactiveTimeUntilUnrent();
-
-			default:
-				return super.provideReplacement(variable);
-		}
+		return switch (variable) {
+			case AreaShop.tagPrice -> getFormattedPrice();
+			case AreaShop.tagRawPrice -> getPrice();
+			case AreaShop.tagDuration -> getDurationString();
+			case AreaShop.tagPlayerName -> getPlayerName();
+			case AreaShop.tagPlayerUUID -> getRenter();
+			case AreaShop.tagRentedUntil ->
+					new SimpleDateFormat(plugin.getConfig().getString("timeFormatChat")).format(new Date(getRentedUntil()));
+			case AreaShop.tagRentedUntilShort ->
+					new SimpleDateFormat(plugin.getConfig().getString("timeFormatSign")).format(new Date(getRentedUntil()));
+			case AreaShop.tagTimeLeft -> getTimeLeftString();
+			case AreaShop.tagMoneyBackAmount -> getFormattedMoneyBackAmount();
+			case AreaShop.tagRawMoneyBackAmount -> getMoneyBackAmount();
+			case AreaShop.tagMoneyBackPercentage ->
+					(getMoneyBackPercentage() % 1.0) == 0.0 ? (int) getMoneyBackPercentage() : getMoneyBackPercentage();
+			case AreaShop.tagTimesExtended -> this.getTimesExtended();
+			case AreaShop.tagMaxExtends -> this.getMaxExtends();
+			case AreaShop.tagExtendsLeft -> getMaxExtends() - getTimesExtended();
+			case AreaShop.tagMaxRentTime -> millisToHumanFormat(getMaxRentTime());
+			case AreaShop.tagMaxInactiveTime -> this.getFormattedInactiveTimeUntilUnrent();
+			default -> super.provideReplacement(variable);
+		};
 	}
 
 	/**
@@ -218,7 +230,7 @@ public class RentRegion extends GeneralRegion {
 	 */
 	public String getPlayerName() {
 		String result = Utils.toName(getRenter());
-		if(result == null || result.isEmpty()) {
+		if(result.isEmpty()) {
 			result = config.getString("rent.renterName");
 			if(result == null || result.isEmpty()) {
 				result = "<UNKNOWN>";
@@ -240,11 +252,7 @@ public class RentRegion extends GeneralRegion {
 	 * @param rentedUntil The time until the region is rented
 	 */
 	public void setRentedUntil(Long rentedUntil) {
-		if(rentedUntil == null) {
-			setSetting("rent.rentedUntil", null);
-		} else {
-			setSetting("rent.rentedUntil", rentedUntil);
-		}
+        setSetting("rent.rentedUntil", rentedUntil);
 	}
 
 	/**
@@ -344,7 +352,7 @@ public class RentRegion extends GeneralRegion {
 	 * @return The amount of money the player should get back
 	 */
 	public double getMoneyBackAmount() {
-		Long currentTime = Calendar.getInstance().getTimeInMillis();
+		long currentTime = Calendar.getInstance().getTimeInMillis();
 		Double timeLeft = (double)(getRentedUntil() - currentTime);
 		double percentage = (getMoneyBackPercentage()) / 100.0;
 		Double timePeriod = (double)(getDuration());
@@ -408,7 +416,7 @@ public class RentRegion extends GeneralRegion {
 
 		// Check if a warning needs to be send for each defined point in time
 		Player player = Bukkit.getPlayer(getRenter());
-		long sendUntil = Calendar.getInstance().getTimeInMillis() + (plugin.getConfig().getInt("expireWarning.delay") * 60 * 1000);
+		long sendUntil = Calendar.getInstance().getTimeInMillis() + (plugin.getConfig().getInt("expireWarning.delay") * 60 * 1000L);
 		for(String timeBefore : profileSection.getKeys(false)) {
 			long timeBeforeParsed = Utils.durationStringToLong(timeBefore);
 			if(timeBeforeParsed <= 0) {
@@ -448,7 +456,7 @@ public class RentRegion extends GeneralRegion {
 		}
 
 		OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(getRenter());
-		return offlinePlayer != null && rent(offlinePlayer);
+		return rent(offlinePlayer);
 	}
 
 	/**
@@ -477,12 +485,9 @@ public class RentRegion extends GeneralRegion {
 			message(offlinePlayer, "general-noRegion");
 			return false;
 		}
-		boolean extend = false;
-		if(getRenter() != null && offlinePlayer.getUniqueId().equals(getRenter())) {
-			extend = true;
-		}
+		boolean extend = getRenter() != null && offlinePlayer.getUniqueId().equals(getRenter());
 
-		// Check if available or extending
+        // Check if available or extending
 		if (isRented() && !extend) {
 			message(offlinePlayer, "rent-someoneElse");
 			return false;
@@ -702,7 +707,7 @@ public class RentRegion extends GeneralRegion {
 
 			// Give back the money
 			OfflinePlayer player = Bukkit.getOfflinePlayer(getRenter());
-			if(player != null && !noPayBack) {
+			if(!noPayBack) {
 				r = null;
 				boolean error = false;
 				try {
