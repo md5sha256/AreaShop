@@ -1,5 +1,6 @@
 package me.wiefferink.areashop.regions;
 
+import com.google.common.base.Charsets;
 import com.sk89q.worldguard.protection.regions.ProtectedPolygonalRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import me.wiefferink.areashop.AreaShop;
@@ -29,11 +30,15 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -956,6 +961,27 @@ public abstract class GeneralRegion implements GeneralRegionInterface, Comparabl
 		} catch(IOException e) {
 			return false;
 		}
+	}
+
+	@Nonnull
+	public CompletableFuture<Boolean> saveNowAsync() {
+		if(isDeleted()) {
+			return CompletableFuture.completedFuture(false);
+		}
+		String data = config.saveToString();
+		saveRequired = false;
+		File file = new File(plugin.getFileManager().getRegionFolder() + File.separator + getName().toLowerCase() + ".yml");
+		BukkitScheduler scheduler = this.plugin.getServer().getScheduler();
+		CompletableFuture<Boolean> future = new CompletableFuture<>();
+		scheduler.runTaskAsynchronously(this.plugin, () -> {
+			try(Writer writer = new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8);){
+				writer.write(data);
+				future.complete(true);
+			} catch (IOException ex) {
+				future.complete(false);
+			}
+		});
+		return future;
 	}
 
 

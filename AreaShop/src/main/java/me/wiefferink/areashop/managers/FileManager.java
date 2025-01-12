@@ -665,7 +665,7 @@ public class FileManager extends Manager implements IFileManager {
 			getRegionsRef(),
 			region -> {
 				if(region.isSaveRequired()) {
-					region.saveNow();
+					region.saveNowAsync();
 				}
 			}
 		);
