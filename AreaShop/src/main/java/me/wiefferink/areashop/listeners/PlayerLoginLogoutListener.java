@@ -6,6 +6,7 @@ import me.wiefferink.areashop.regions.BuyRegion;
 import me.wiefferink.areashop.regions.GeneralRegion;
 import me.wiefferink.areashop.regions.RentRegion;
 import me.wiefferink.areashop.tools.Utils;
+import me.wiefferink.areashop.wrapper.CacheWrapper;
 import me.wiefferink.bukkitdo.Do;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -47,6 +48,8 @@ public final class PlayerLoginLogoutListener implements Listener {
 			return;
 		}
 		final Player player = event.getPlayer();
+
+        plugin.getCacheManager().cache().computeIfAbsent(player.getUniqueId(), uuid -> new CacheWrapper()).setName(player.getName());
 
 		// Schedule task to check for notifications, prevents a lag spike at login
 		Do.syncTimerLater(25, 25, () -> {

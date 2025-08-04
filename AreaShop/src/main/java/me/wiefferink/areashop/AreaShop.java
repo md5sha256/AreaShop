@@ -16,12 +16,7 @@ import me.wiefferink.areashop.interfaces.AreaShopInterface;
 import me.wiefferink.areashop.interfaces.WorldEditInterface;
 import me.wiefferink.areashop.interfaces.WorldGuardInterface;
 import me.wiefferink.areashop.listeners.PlayerLoginLogoutListener;
-import me.wiefferink.areashop.managers.FeatureManager;
-import me.wiefferink.areashop.managers.IFileManager;
-import me.wiefferink.areashop.managers.FileManager;
-import me.wiefferink.areashop.managers.Manager;
-import me.wiefferink.areashop.managers.SignErrorLogger;
-import me.wiefferink.areashop.managers.SignLinkerManager;
+import me.wiefferink.areashop.managers.*;
 import me.wiefferink.areashop.modules.AreaShopModule;
 import me.wiefferink.areashop.modules.BukkitModule;
 import me.wiefferink.areashop.modules.DependencyModule;
@@ -81,6 +76,7 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 	private MessageBridge messageBridge;
 	private IFileManager fileManager = null;
 	private LanguageManager languageManager = null;
+	private CacheManager cacheManager = null;
 	private SignLinkerManager signLinkerManager = null;
 	private FeatureManager featureManager = null;
 	private SignManager signManager;
@@ -285,6 +281,8 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 		managers.add(featureManager);
 		signManager = injector.getInstance(SignManager.class);
 		managers.add(signManager);
+		cacheManager = injector.getInstance(CacheManager.class);
+		managers.add(cacheManager);
 
 		loadExtensions();
 
@@ -382,6 +380,10 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 		}
 
 		return version;
+	}
+
+	public CacheManager getCacheManager() {
+		return cacheManager;
 	}
 
 	/**
