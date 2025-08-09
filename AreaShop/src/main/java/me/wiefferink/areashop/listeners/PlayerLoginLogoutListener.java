@@ -2,11 +2,12 @@ package me.wiefferink.areashop.listeners;
 
 import me.wiefferink.areashop.AreaShop;
 import me.wiefferink.areashop.MessageBridge;
+import me.wiefferink.areashop.managers.CacheManager;
 import me.wiefferink.areashop.regions.BuyRegion;
 import me.wiefferink.areashop.regions.GeneralRegion;
 import me.wiefferink.areashop.regions.RentRegion;
 import me.wiefferink.areashop.tools.Utils;
-import me.wiefferink.areashop.wrapper.CacheWrapper;
+import me.wiefferink.areashop.tools.CacheWrapper;
 import me.wiefferink.bukkitdo.Do;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,14 +29,20 @@ public final class PlayerLoginLogoutListener implements Listener {
 
 	private final AreaShop plugin;
 	private final MessageBridge messageBridge;
+	private final CacheManager cacheManager;
 
 	/**
 	 * Constructor.
 	 * @param plugin The AreaShop plugin
 	 */
-	public PlayerLoginLogoutListener(@Nonnull AreaShop plugin, @Nonnull MessageBridge messageBridge) {
+	public PlayerLoginLogoutListener(
+			@Nonnull AreaShop plugin,
+			@Nonnull MessageBridge messageBridge,
+			@Nonnull CacheManager cacheManager
+	) {
 		this.plugin = plugin;
 		this.messageBridge = messageBridge;
+		this.cacheManager = cacheManager;
 	}
 
 	/**
@@ -49,7 +56,7 @@ public final class PlayerLoginLogoutListener implements Listener {
 		}
 		final Player player = event.getPlayer();
 
-        plugin.getCacheManager().cache().computeIfAbsent(player.getUniqueId(), uuid -> new CacheWrapper()).setName(player.getName());
+        this.cacheManager.computeIfAbsent(player.getUniqueId(), uuid -> new CacheWrapper(uuid, player.getName()));
 
 		// Schedule task to check for notifications, prevents a lag spike at login
 		Do.syncTimerLater(25, 25, () -> {

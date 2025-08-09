@@ -150,6 +150,7 @@ forceClearEntities: false
 # Maximum number of locations the teleport function should check to find a safe spot.
 maximumTries: 50000
 
+cacheExpiryDuration: '7d'
 
 # ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 # │ VARIABLES: Variables that can be used in messages and settings where a region is available.                                │

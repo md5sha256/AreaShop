@@ -16,7 +16,13 @@ import me.wiefferink.areashop.interfaces.AreaShopInterface;
 import me.wiefferink.areashop.interfaces.WorldEditInterface;
 import me.wiefferink.areashop.interfaces.WorldGuardInterface;
 import me.wiefferink.areashop.listeners.PlayerLoginLogoutListener;
-import me.wiefferink.areashop.managers.*;
+import me.wiefferink.areashop.managers.CacheManager;
+import me.wiefferink.areashop.managers.FeatureManager;
+import me.wiefferink.areashop.managers.FileManager;
+import me.wiefferink.areashop.managers.IFileManager;
+import me.wiefferink.areashop.managers.Manager;
+import me.wiefferink.areashop.managers.SignErrorLogger;
+import me.wiefferink.areashop.managers.SignLinkerManager;
 import me.wiefferink.areashop.modules.AreaShopModule;
 import me.wiefferink.areashop.modules.BukkitModule;
 import me.wiefferink.areashop.modules.DependencyModule;
@@ -51,6 +57,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -282,12 +289,16 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 		signManager = injector.getInstance(SignManager.class);
 		managers.add(signManager);
 		cacheManager = injector.getInstance(CacheManager.class);
+		String rawExpiryDuration = fileManager.getConfig().getString("cacheExpiryDuration", "7d");
+		long millis = Utils.durationStringToLong(rawExpiryDuration);
+		cacheManager.initialize(new File(getDataFolder(), "uuid-cache.bin"), Duration.ofMillis(millis));
+		cacheManager.loadCache();
 		managers.add(cacheManager);
 
 		loadExtensions();
 
 		// Register the event listeners
-		getServer().getPluginManager().registerEvents(new PlayerLoginLogoutListener(this, messageBridge), this);
+		getServer().getPluginManager().registerEvents(new PlayerLoginLogoutListener(this, messageBridge, this.cacheManager), this);
 
 		setupTasks();
 

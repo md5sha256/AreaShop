@@ -10,7 +10,6 @@ import me.wiefferink.areashop.managers.CacheManager;
 import me.wiefferink.areashop.regions.BuyRegion;
 import me.wiefferink.areashop.regions.GeneralRegion;
 import me.wiefferink.areashop.regions.RentRegion;
-import me.wiefferink.areashop.wrapper.CacheWrapper;
 import me.wiefferink.interactivemessenger.Log;
 import me.wiefferink.interactivemessenger.processing.Message;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -39,8 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class Utils {
 
@@ -819,7 +816,7 @@ public class Utils {
         final String name = Bukkit.getOfflinePlayer(uuid).getName();
 
         if (name != null) {
-            cacheManager.put(uuid, new CacheWrapper(name, System.currentTimeMillis()));
+            cacheManager.put(uuid, new CacheWrapper(uuid, name, System.currentTimeMillis()));
             return name;
         }
 

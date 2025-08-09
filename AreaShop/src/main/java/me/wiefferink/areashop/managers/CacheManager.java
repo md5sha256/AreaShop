@@ -1,71 +1,107 @@
 package me.wiefferink.areashop.managers;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import jakarta.inject.Inject;
-import me.wiefferink.areashop.AreaShop;
-import me.wiefferink.areashop.wrapper.CacheWrapper;
+import me.wiefferink.areashop.tools.CacheWrapper;
+import org.bukkit.plugin.Plugin;
 
+import javax.annotation.Nonnull;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Type;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 public class CacheManager extends Manager {
 
-    private final AreaShop plugin;
-    private final Gson gson;
-    private final File cacheFile;
-    private Map<UUID, CacheWrapper> cache;
+    private final Plugin plugin;
+    private final Map<UUID, CacheWrapper> cache;
+
+    private File cacheFile;
+    private Duration expiryDuration;
 
     @Inject
-    CacheManager(AreaShop plugin) {
+    CacheManager(@Nonnull Plugin plugin) {
         this.plugin = plugin;
-        this.gson = new GsonBuilder().setPrettyPrinting().create();
-        this.cacheFile = new File(plugin.getDataFolder(), "cache.json");
         this.cache = new HashMap<>();
-
-        loadCache();
     }
 
 
     @Override
     public void shutdown() {
-        trimCache();
-        saveCache();
+        if (this.expiryDuration != null) {
+            trimCache(expiryDuration);
+        }
+        if (this.cacheFile != null) {
+            saveCache(cacheFile);
+        }
+    }
+
+    public void initialize(@Nonnull File cacheFile, @Nonnull Duration expiryDuration) {
+        this.cacheFile = cacheFile;
+        this.expiryDuration = expiryDuration;
+    }
+
+    public void loadCache() {
+        if (this.cacheFile != null) {
+            loadCache(this.cacheFile);
+        }
     }
 
     /**
-     * Load the cache from the file, create if it doesn't exist
+     * Load the cache from the file
      */
-    public void loadCache() {
-        if (!cacheFile.exists()) {
-            saveCache();
+    public void loadCache(@Nonnull File cacheFile) {
+        if (Files.notExists(cacheFile.toPath())) {
+            this.plugin.getLogger().info("uuid cache file does not exist, loaded 0 entries");
             return;
         }
+        this.cache.clear();
 
-        try (FileReader reader = new FileReader(cacheFile)) {
-            Type type = new TypeToken<Map<UUID, CacheWrapper>>() {
-            }.getType();
-            Map<UUID, CacheWrapper> loadedCache = gson.fromJson(reader, type);
-
-            if (loadedCache != null) {
-                cache = loadedCache;
-                plugin.getLogger().info("Loaded " + cache.size() + " cache entries from cache.json");
-            } else {
-                cache = new HashMap<>();
+        try (FileInputStream input = new FileInputStream(cacheFile)) {
+            byte[] bytes = input.readAllBytes();
+            ByteBuffer buffer = ByteBuffer.wrap(bytes).asReadOnlyBuffer();
+            while (buffer.hasRemaining()) {
+                long lastUsed = buffer.getLong();
+                long lsb = buffer.getLong();
+                long msb = buffer.getLong();
+                int stringLen = buffer.getInt();
+                byte[] stringBytes = new byte[stringLen];
+                buffer.get(stringBytes);
+                String name = new String(stringBytes, StandardCharsets.UTF_8);
+                UUID uuid = new UUID(msb, lsb);
+                CacheWrapper wrapper = new CacheWrapper(uuid, name, lastUsed);
+                this.cache.put(wrapper.getUuid(), wrapper);
             }
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Failed to load cache.json", e);
-            cache = new HashMap<>();
+            this.plugin.getLogger()
+                    .info(String.format("Loaded %d cached uuid name entries", this.cache.size()));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            this.plugin.getLogger().warning("Failed to load the uuid cache!");
+        }
+    }
+
+    public void saveCache() {
+        if (this.cacheFile != null) {
+            saveCache(this.cacheFile);
+        }
+    }
+
+    public void saveCacheAsync() {
+        if (this.cacheFile != null) {
+            saveCacheAsync(this.cacheFile);
         }
     }
 
@@ -73,23 +109,62 @@ public class CacheManager extends Manager {
     /**
      * Save the cache to the file
      */
-    public void saveCache() {
+    public void saveCache(@Nonnull File cacheFile) {
+        List<CacheWrapper> copy = this.cache.values().stream().map(CacheWrapper::new).toList();
+        try {
+            // Ensure parent directory exists
+            Path parentDir = cacheFile.toPath().getParent();
+            if (parentDir != null) { // parent might be null if cacheFile is relative with no parent
+                Files.createDirectories(parentDir);
+            }
+            byte[] bytes = serialize(copy);
+            try (FileOutputStream fos = new FileOutputStream(cacheFile)) {
+                fos.write(bytes);
+            }
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to save cache.json", e);
+        }
+    }
 
+    public void saveCacheAsync(@Nonnull File cacheFile) {
+        List<CacheWrapper> copy = this.cache.values().stream().map(CacheWrapper::new).toList();
         CompletableFuture.runAsync(() -> {
             try {
                 // Ensure parent directory exists
-                if (!cacheFile.getParentFile().exists()) {
-                    cacheFile.getParentFile().mkdirs();
+                Path parentDir = cacheFile.toPath().getParent();
+                if (parentDir != null) { // parent might be null if cacheFile is relative with no parent
+                    Files.createDirectories(parentDir);
                 }
-
-                try (FileWriter writer = new FileWriter(cacheFile)) {
-                    gson.toJson(cache, writer);
-                    plugin.getLogger().fine("Saved " + cache.size() + " cache entries to cache.json");
+                byte[] bytes = serialize(copy);
+                try (FileOutputStream fos = new FileOutputStream(cacheFile)) {
+                    fos.write(bytes);
                 }
             } catch (IOException e) {
                 plugin.getLogger().log(Level.SEVERE, "Failed to save cache.json", e);
             }
         });
+    }
+
+    private byte[] serialize(List<CacheWrapper> wrappers) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(256 * wrappers.size());
+        for (CacheWrapper wrapper : wrappers) {
+            ByteBuffer buffer = ByteBuffer.allocate(256);
+            byte[] stringBytes = wrapper.getName().getBytes(StandardCharsets.UTF_8);
+            int stringLen = stringBytes.length;
+            long lsb = wrapper.getUuid().getLeastSignificantBits();
+            long msb = wrapper.getUuid().getMostSignificantBits();
+            long lastUsed = wrapper.getLastUsed();
+            buffer.putLong(lastUsed);
+            buffer.putLong(lsb);
+            buffer.putLong(msb);
+            buffer.putInt(stringLen);
+            buffer.put(stringBytes);
+
+            buffer.flip();
+
+            bos.write(buffer.array(), buffer.position(), buffer.remaining());
+        }
+        return bos.toByteArray();
     }
 
     /**
@@ -99,8 +174,8 @@ public class CacheManager extends Manager {
         return cache.get(uuid);
     }
 
-    public Map<UUID, CacheWrapper> cache() {
-        return cache;
+    public CacheWrapper computeIfAbsent(@Nonnull UUID uuid, Function<UUID, CacheWrapper> function) {
+        return this.cache.computeIfAbsent(uuid, function);
     }
 
     /**
@@ -145,11 +220,17 @@ public class CacheManager extends Manager {
         return cache.size();
     }
 
+    public void trimCache() {
+        if (this.expiryDuration != null) {
+            trimCache(this.expiryDuration);
+        }
+    }
+
     /**
      * Trim the cache by removing entries older than 1 week
      */
-    public void trimCache() {
-        long timeInMillis = 30L * 24L * 60L * 60L * 1000L;
+    public void trimCache(@Nonnull Duration expiryDuration) {
+        long expiryMillis = expiryDuration.toMillis();
         long currentTime = System.currentTimeMillis();
 
         Iterator<Map.Entry<UUID, CacheWrapper>> iterator = cache.entrySet().iterator();
@@ -157,7 +238,7 @@ public class CacheManager extends Manager {
             Map.Entry<UUID, CacheWrapper> entry = iterator.next();
             CacheWrapper wrapper = entry.getValue();
 
-            if (wrapper.getLastUsed() != null && (currentTime - wrapper.getLastUsed()) > timeInMillis) {
+            if (wrapper.getLastUsed() != -1 && (currentTime - wrapper.getLastUsed()) >= expiryMillis) {
                 iterator.remove();
             }
         }
