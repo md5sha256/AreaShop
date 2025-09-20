@@ -46,6 +46,7 @@ import me.wiefferink.areashop.commands.TeleportCommand;
 import me.wiefferink.areashop.commands.ToggleHomeCommand;
 import me.wiefferink.areashop.commands.TransferCommand;
 import me.wiefferink.areashop.commands.UnrentCommand;
+import me.wiefferink.areashop.commands.SetMaxExtends;
 import me.wiefferink.areashop.commands.util.commandsource.CommandSource;
 import me.wiefferink.areashop.commands.util.commandsource.CommandSourceMapper;
 import org.bukkit.command.CommandSender;
@@ -109,7 +110,8 @@ public class AreashopCommands {
             TeleportCommand.class,
             ToggleHomeCommand.class,
             TransferCommand.class,
-            UnrentCommand.class
+            UnrentCommand.class,
+            SetMaxExtends.class
     );
 
     private final MessageBridge messageBridge;

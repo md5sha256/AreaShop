@@ -374,6 +374,11 @@ setduration-noLandlord: You don't have permission to change the duration because
 setduration-successRemoved: 'Duration of %lang:region% has been removed, it will now
     use the duration from a group or the default.yml file, new duration: %duration%.'
 
+setmaxextends-noPermission: You don't have permission to change the amount of times a region can have rent extended.
+setmaxextends-help: /as setmaxextends \<amount> [region], the region you stand in will be used if not specified.
+setmaxextends-noLandlord: You don't have permission to change the duration because you are not the landlord of %lang:region%.
+setmaxextends-success: Max extensions of %lang:region% changed to %maxextends%
+
 setup-noRegion: You did not specify a region on the second line.
 setup-alreadyRentSign: The region you specified is already added to AreaShop as a
   rent region, add signs with [as] on the first line or '/as addsign'.

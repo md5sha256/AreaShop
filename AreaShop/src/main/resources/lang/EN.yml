@@ -81,6 +81,7 @@ help-reload: "%lang:helpCommand|/as reload|% Reload all files and update the reg
 help-setrestore: "%lang:helpCommand|/as setrestore|% Set restoring on/off and choose profile."
 help-setprice: "%lang:helpCommand|/as setprice|% Change the price of a region."
 help-setduration: "%lang:helpCommand|/as setduration|% Change the duration of a rent region."
+help-setmaxextends: "%lang:helpCommand|/as setmaxextends|% Change the amount of times a renter can extend their rent by."
 help-settransfer: "%lang:helpCommand|/as settransfer|% Set transfer on/off."
 help-teleport: "%lang:helpCommand|/as tp|% Teleport to a rent/buy region."
 help-setteleport: "%lang:helpCommand|/as settp|% Set teleport position for a region."
@@ -349,6 +350,11 @@ setduration-wrongFormat: "'%0%' is not a proper timeformat, check the documentat
 setduration-success: "Duration of region %lang:region% changed to '%duration%'."
 setduration-noLandlord: "You don't have permission to change the duration because you are not the landlord of %lang:region%."
 setduration-successRemoved: "Duration of %lang:region% has been removed, it will now use the duration from a group or the default.yml file, new duration: %duration%."
+
+setmaxextends-noPermission: "You don't have permission to change the amount of times a region can have rent extended."
+setmaxextends-help: "/as setmaxextends <amount> [region], the region you stand in will be used if not specified."
+setmaxextends-noLandlord: "You don't have permission to change the duration because you are not the landlord of %lang:region%."
+setmaxextends-success: "Max extensions of %lang:region% changed to %maxextends%"
 
 setup-noRegion: "You did not specify a region on the second line."
 setup-alreadyRentSign: "The region you specified is already added to AreaShop as a rent region, add signs with [as] on the first line or '/as addsign'."
