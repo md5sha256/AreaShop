@@ -53,7 +53,7 @@ general:
       rightClickConsole:
       #  - 'areashop message %clicker% %lang:confirm-rent|%region%|%' # Alternative to first ask for confirmation (remove rightClickPlayer section)
       leftClickPlayer:
-        - 'areashop info region %region%'
+        - 'areashop info region --region %region%'
     rented:
       line1: '&4&l[Rented]'
       line2: '%region%'
@@ -64,7 +64,7 @@ general:
       rightClickConsole:
       #  - 'areashop message %clicker% %lang:confirm-extend|%region%|%' # Alternative to first ask for confirmation (remove rightClickPlayer section)
       leftClickPlayer:
-        - 'areashop info region %region%'
+        - 'areashop info region --region %region%'
       shiftRightClickConsole:
         - 'areashop message %clicker% %lang:confirm-unrent|%region%|%'
     forsale:
@@ -77,7 +77,7 @@ general:
       rightClickConsole:
       #  - 'areashop message %clicker% %lang:confirm-buy|%region%|%' # Alternative to first ask for confirmation (remove rightClickPlayer section)
       leftClickPlayer:
-        - 'areashop info region %region%'
+        - 'areashop info region --region %region%'
     resell:
       line1: '&9&l[Resale]'
       line2: '%region%'
@@ -88,7 +88,7 @@ general:
       rightClickConsole:
       #  - 'areashop message %clicker% %lang:confirm-buy|%region%|%' # Alternative to first ask for confirmation (remove rightClickPlayer section)
       leftClickPlayer:
-        - 'areashop info region %region%'
+        - 'areashop info region --region %region%'
       shiftRightClickPlayer:
         - 'areashop stopresell %region%'
     sold:
@@ -99,7 +99,7 @@ general:
       rightClickPlayer:
         - 'areashop buy --region %region%'
       leftClickPlayer:
-        - 'areashop info region %region%'
+        - 'areashop info region --region %region%'
       shiftRightClickConsole:
         - 'areashop message %clicker% %lang:confirm-sell|%region%|%'
 
