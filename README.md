@@ -2,6 +2,7 @@
 The project is no longer maintained. See this alternative <a href="https://github.com/MCCitiesNetwork/realty">realty</a>
 </h1>
 <br>
+
 ![AreaShop logo](https://cloud.githubusercontent.com/assets/6951068/9471294/f016d8ee-4b4f-11e5-9bda-d61b1c423ebb.png)<br/>
 [![](https://jitpack.io/v/md5sha256/AreaShop.svg)](https://jitpack.io/#md5sha256/AreaShop)
 <br>
