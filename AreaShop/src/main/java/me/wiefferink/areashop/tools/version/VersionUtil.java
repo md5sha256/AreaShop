@@ -1,41 +1,25 @@
 package me.wiefferink.areashop.tools.version;
 
-import javax.annotation.Nonnull;
-import java.util.StringJoiner;
+import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 
 public class VersionUtil {
+    public static final VersionData MINIMUM_VERSION = new VersionData(1, 21);
 
-    public static final VersionData MC_1_21 = new VersionData(1, 21);
-
-    @Nonnull
-    public static String padTrailingZero(@Nonnull String minecraftVersion) {
-        int dotCount = 0;
-        for (char c : minecraftVersion.toCharArray()) {
-            if (c == '.') {
-                dotCount += 1;
-            }
-        }
-        StringJoiner joiner = new StringJoiner("");
-        for (int i = 0; i < 2 - dotCount; i++) {
-            joiner.add(".0");
-        }
-        return minecraftVersion + joiner;
+    @NotNull
+    public static Version getCurrentServerVersion() {
+        String version = Bukkit.getServer().getVersion();
+        return Version.parse(version);
     }
 
-    @Nonnull
-    public static Version parseMinecraftVersion(@Nonnull String minecraftVersion) {
-        // Expecting 1.X.X-R0.1-SNAPSHOT
-        int stripLength = "-R0.1-SNAPSHOT".length();
-        int length = minecraftVersion.length();
-        if (length <= stripLength) {
-            throw new IllegalArgumentException("Invalid minecraft version: " + minecraftVersion);
-        }
-        String strippedVersion = minecraftVersion.substring(0, length - stripLength);
-        try {
-            return Version.parse(padTrailingZero(strippedVersion));
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Invalid minecraft version: " + minecraftVersion, ex);
-        }
+    public static boolean isSupported() {
+        Version current = getCurrentServerVersion();
+        return !current.versionData().isOlderThan(MINIMUM_VERSION);
+    }
+
+    public static boolean isAtLeast(VersionData required) {
+        Version current = getCurrentServerVersion();
+        return !current.versionData().isOlderThan(required);
     }
 
 }

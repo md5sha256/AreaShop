@@ -31,7 +31,7 @@ dependencies {
     api("com.google.inject.extensions:guice-assistedinject:7.0.0") {
         exclude("com.google.guava")
     }
-    implementation("org.incendo:cloud-paper:2.0.0-beta.10") {
+    implementation("org.incendo:cloud-paper:2.0.0-beta.15") {
         exclude("com.google.guava")
     }
     implementation("org.incendo:cloud-processors-confirmation:1.0.0-beta.3") {
@@ -130,7 +130,7 @@ tasks {
         // Configure the Minecraft version for our task.
         // This is the only required configuration besides applying the plugin.
         // Your plugin's jar (or shadowJar if present) will be used automatically.
-        minecraftVersion("1.21.1")
+        minecraftVersion("26.1")
 
         downloadPlugins {
             github("EssentialsX", "essentials", "2.20.1", "EssentialsX-2.20.1.jar")

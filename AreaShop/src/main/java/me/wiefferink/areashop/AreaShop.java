@@ -182,13 +182,13 @@ public final class AreaShop extends JavaPlugin implements AreaShopApi {
 		messageBridge = new SimpleMessageBridge(this.serviceManager);
 		signErrorLogger = new SignErrorLogger(new File(getDataFolder(), signLogFile));
 
-		// Setup NMS Impl
-		Version currentServerVersion = VersionUtil.parseMinecraftVersion(Bukkit.getBukkitVersion());
-		if (currentServerVersion.versionData().isOlderThan(VersionUtil.MC_1_21)) {
-			error("Unsupported minecraft version: " + currentServerVersion + "! Minimum is 1.21");
+		Version ver = VersionUtil.getCurrentServerVersion();
+		if (ver.versionData().isOlderThan(VersionUtil.MINIMUM_VERSION)) {
+			error("Unsupported Minecraft version: " + ver + "! Supported is 1.21 and higher");
 			shutdownOnError();
 			return;
 		}
+		getLogger().info("Running on Minecraft " + ver);
 
 		final MinecraftPlatform platform;
 		if (PaperLib.isPaper()) {
