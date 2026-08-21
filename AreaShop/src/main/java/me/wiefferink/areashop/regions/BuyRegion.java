@@ -424,6 +424,7 @@ public class BuyRegion extends GeneralRegion {
 
 			// Resell is done, disable that now
 			disableReselling();
+			update();
 
 			// Send message to the player
 			message(offlinePlayer, "buy-successResale", oldOwnerName);
@@ -519,6 +520,7 @@ public class BuyRegion extends GeneralRegion {
 		}
 
 		disableReselling();
+		update();
 		// Give part of the buying price back
 		double moneyBack = getMoneyBackAmount();
 		if(moneyBack > 0 && giveMoneyBack) {
